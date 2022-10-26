@@ -1,0 +1,54 @@
+package com.example.artkeeper.ui
+
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.coroutineScope
+import androidx.recyclerview.widget.RecyclerView
+import com.example.artkeeper.adapter.PostAdapter
+import com.example.artkeeper.databinding.FragmentMainBinding
+import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.viewmodel.PostViewModel
+import com.example.artkeeper.viewmodel.PostViewModelFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+class MainFragment : Fragment() {
+
+    private var _binding: FragmentMainBinding? = null
+    private val binding: FragmentMainBinding
+        get() = _binding!!
+    private lateinit var recyclerView: RecyclerView
+    private val viewModel: PostViewModel by activityViewModels { PostViewModelFactory((activity?.application as ArtKeeper).database.postDao()) }
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentMainBinding.inflate(inflater, container, false)
+        // Inflate the layout for this fragment
+        return binding.root
+    }
+
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        recyclerView = binding.recyclerViewHome
+        val postAdapter = PostAdapter()
+        recyclerView.adapter = postAdapter
+
+        lifecycle.coroutineScope.launch(Dispatchers.IO) {
+            viewModel.getAllPost().collect {
+                postAdapter.submitList(it)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        Log.d("MainFragment", "destroyed")
+        _binding = null
+        super.onDestroy()
+    }
+}

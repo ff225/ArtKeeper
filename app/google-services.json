@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "442319572375",
+    "project_id": "artkeeper-01",
+    "storage_bucket": "artkeeper-01.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442319572375:android:74a114e2d7018794e548d2",
+        "android_client_info": {
+          "package_name": "com.example.artkeeper"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "442319572375-nvin7d2q38ctbo73jjk09dvbnim11ecf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCb7_Y7Fs1fm_7bdQ0g6JsWHajPWi8syE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "442319572375-nvin7d2q38ctbo73jjk09dvbnim11ecf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

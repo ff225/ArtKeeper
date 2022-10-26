@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Art Keeper</string>
+    <string name="profile">Profilo</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="home">Home</string>
+    <string name="add_post">Nuovo post</string>
+    <string name="settings">Impostazioni</string>
+    <string name="change_usn">Cambia username</string>
+    <string name="change_img_profile">Cambia immagine del profilo</string>
+    <string name="add_son">Aggiungi figlio</string>
+    <string name="logout">Logout</string>
+    <string name="description">Descrizione</string>
+    <string name="pick_from_gallery">Galleria</string>
+    <string name="pick_from_camera">Fotocamera</string>
+    <string name="select_son">Chi ha disegnato?</string>
+    <string name="delete">Annulla</string>
+    <string name="share">Pubblica</string>
+    <string name="cancel">Cancellare il post?</string>
+    <string name="yes">Si</string>
+    <string name="no">No</string>
+    <string name="folder_image">"ArtKeeperImages"</string>
+    <string name="num_post">%s post</string>
+
+    <array name="choice">
+        <item>Fotocamera</item>
+        <item>Galleria</item>
+    </array>
+</resources>

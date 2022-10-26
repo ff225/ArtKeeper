@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="3dp"
+    tools:context=".ui.post.NewPost">
+
+    <ImageView
+        android:id="@+id/image_view_post"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/ll_pick_photo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@tools:sample/avatars" />
+
+    <LinearLayout
+        android:id="@+id/ll_pick_photo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/post_description_textInput"
+        app:layout_constraintTop_toBottomOf="@id/image_view_post">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pick_from_gallery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:text="@string/pick_from_gallery"
+            app:icon="@drawable/ic_baseline_insert_photo_24"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pick_from_camera"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:text="@string/pick_from_camera"
+            app:icon="@drawable/ic_baseline_photo_camera_24"/>
+    </LinearLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/post_description_textInput"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:hint="@string/description"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_pick_photo">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/textInputDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/menu_son"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:hint="@string/select_son"
+        app:layout_constraintBottom_toTopOf="@id/ll_delete_share"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/post_description_textInput">
+
+        <AutoCompleteTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_delete_share"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/menu_son">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cancel_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:text="@string/delete" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/share_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:enabled="false"
+            android:text="@string/share" />
+
+    </LinearLayout>
+    <!---->
+</androidx.constraintlayout.widget.ConstraintLayout>

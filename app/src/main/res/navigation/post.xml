@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/post"
+    android:label="@string/add_post"
+    app:startDestination="@id/newPost">
+
+    <fragment
+        android:id="@+id/newPost"
+        android:name="com.example.artkeeper.ui.post.NewPost"
+        android:label="@string/add_post"
+        tools:layout="@layout/fragment_new_post">
+        <action
+            android:id="@+id/action_move_to_home"
+            app:destination="@+id/home" />
+    </fragment>
+</navigation>
