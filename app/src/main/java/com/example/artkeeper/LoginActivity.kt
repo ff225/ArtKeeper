@@ -11,6 +11,9 @@ import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.firebase.auth.FirebaseAuth
 
 class LoginActivity : AppCompatActivity() {
+    companion object {
+        private const val TAG = "LoginActivity"
+    }
 
     private val signInLauncher = registerForActivityResult(
         FirebaseAuthUIActivityResultContract()
@@ -22,7 +25,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         AuthUI.getInstance().signOut(this)
         val currentUser = FirebaseAuth.getInstance().currentUser
-        Log.i("CurrentUser", "${currentUser?.email}")
+        Log.i(TAG, "${currentUser?.email}")
         if (currentUser == null) {
             createSignInIntent()
         } else {
@@ -32,7 +35,7 @@ class LoginActivity : AppCompatActivity() {
                 "Welcome ${FirebaseAuth.getInstance().currentUser!!.email}",
                 Toast.LENGTH_LONG
             ).show()
-            //finish()
+            finish()
         }
 
     }
@@ -45,12 +48,20 @@ class LoginActivity : AppCompatActivity() {
             val user = FirebaseAuth.getInstance().currentUser
             Toast.makeText(this@LoginActivity, "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
             startActivity(Intent(this, MainActivity::class.java))
-            //finish()
+            finish()
+            // TODO
             // Login with Firebase:
-            // - errore dopo il login (risolto),
-            // - impedire di uscire dalla pagina tornando al fragment precedente,
-            // - idea: se login è andato bene far partire attività main).
+            // - errore dopo il login (risolto);
+            // - impedire di uscire dalla pagina tornando al fragment precedente.
         } else {
+
+            Toast.makeText(
+                this@LoginActivity,
+                "Login fallito, riprova.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            Log.d(TAG, "${response?.error?.errorCode}")
             // Sign in failed. If response is null the user canceled the
             // sign-in flow using the back button. Otherwise check
             // response.getError().getErrorCode() and handle the error.
@@ -59,14 +70,11 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun createSignInIntent() {
-        // [START auth_fui_create_intent]
-        // Choose authentication providers
         val providers = arrayListOf(
             AuthUI.IdpConfig.GoogleBuilder().build(),
             AuthUI.IdpConfig.TwitterBuilder().build(),
         )
 
-        // Create and launch sign-in intent
         val signInIntent = AuthUI.getInstance()
             .createSignInIntentBuilder()
             .setIsSmartLockEnabled(false)
@@ -74,6 +82,5 @@ class LoginActivity : AppCompatActivity() {
             .build()
         signInLauncher.launch(signInIntent)
 
-        // [END auth_fui_create_intent]
     }
 }
