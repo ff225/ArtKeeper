@@ -30,7 +30,7 @@ class LoginActivity : AppCompatActivity() {
         //if (currentUser == null) {
         Log.d(TAG, "start intent for login")
         createSignInIntent()
-        //}
+        // }
         /*else {
             Toast.makeText(
                 this@LoginActivity,
