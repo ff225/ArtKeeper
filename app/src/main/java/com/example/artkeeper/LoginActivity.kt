@@ -3,6 +3,7 @@ package com.example.artkeeper
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.firebase.ui.auth.AuthUI
@@ -24,65 +25,50 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_login)
+        val loginButton = findViewById<Button>(R.id.login_button)
+
+        //Test
         AuthUI.getInstance().signOut(this)
         val currentUser = FirebaseAuth.getInstance().currentUser
-        Log.i(TAG, "email: ${currentUser?.email}")
-        //if (currentUser == null) {
-        Log.d(TAG, "start intent for login")
-        createSignInIntent()
-        // }
-        /*else {
-            Toast.makeText(
-                this@LoginActivity,
-                "Welcome ${FirebaseAuth.getInstance().currentUser!!.email}",
-                Toast.LENGTH_LONG
-            ).show()
-            startActivity(Intent(this, MainActivity::class.java))
-            //finish()
-        }*/
+        Log.d(TAG, "email: ${currentUser?.email}")
+        if (currentUser != null)
+            startMainActivity()
 
-        //finish()
-    }
-
-    override fun onBackPressed() {
-        Log.d(TAG, "onBackPressed")
-        finish()
-        super.onBackPressed()
+        loginButton.setOnClickListener {
+            Log.d(TAG, "start intent for login")
+            createSignInIntent()
+        }
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
         // Login with Firebase:
-        // - errore dopo il login (risolto);
-        // - impedire all'utente di uscire dall'intent di login (risolto).
+        // - errore dopo il login (risolto).
 
         Log.d(TAG, "onSignInResult")
         val response = result.idpResponse
-        // L'utente cerca di tornare indietro.
-        if (response?.error == null) {
-            Log.d(TAG, "onSignInResult is ${response?.error}, call finish()")
-            onBackPressed()
-        }
 
         if (result.resultCode == RESULT_OK) {
             // Successfully signed in
             Log.i(TAG, "Logged!")
             val user = FirebaseAuth.getInstance().currentUser
             Toast.makeText(this@LoginActivity, "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            Log.d(TAG, "nome: ${user.displayName}")
+            startMainActivity()
         } else {
-
             Toast.makeText(
                 this@LoginActivity,
-                "Login fallito, riprova.",
+                "Login necessario per utilizzare l'app.",
                 Toast.LENGTH_LONG
             ).show()
 
-            Log.d(TAG, "${response?.error?.errorCode}")
+            Log.d(TAG, "login error: ${response?.error?.errorCode}")
         }
     }
 
     private fun createSignInIntent() {
+        Log.d(TAG, "in createSignInIntent")
+
         val providers = arrayListOf(
             AuthUI.IdpConfig.GoogleBuilder().build(),
             AuthUI.IdpConfig.TwitterBuilder().build(),
@@ -94,9 +80,16 @@ class LoginActivity : AppCompatActivity() {
             .setAvailableProviders(providers)
             .build()
 
-        signInIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         signInLauncher.launch(signInIntent)
-        Log.d(TAG, "in createSignInIntent")
+    }
 
+    private fun startMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
+    override fun onDestroy() {
+        Log.d(TAG, "LoginActivity onDestroy")
+        super.onDestroy()
     }
 }
