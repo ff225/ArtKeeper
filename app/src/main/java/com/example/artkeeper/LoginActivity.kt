@@ -21,38 +21,55 @@ class LoginActivity : AppCompatActivity() {
         this.onSignInResult(res)
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AuthUI.getInstance().signOut(this)
         val currentUser = FirebaseAuth.getInstance().currentUser
-        Log.i(TAG, "${currentUser?.email}")
-        if (currentUser == null) {
-            createSignInIntent()
-        } else {
-            startActivity(Intent(this, MainActivity::class.java))
+        Log.i(TAG, "email: ${currentUser?.email}")
+        //if (currentUser == null) {
+        Log.d(TAG, "start intent for login")
+        createSignInIntent()
+        //}
+        /*else {
             Toast.makeText(
                 this@LoginActivity,
                 "Welcome ${FirebaseAuth.getInstance().currentUser!!.email}",
                 Toast.LENGTH_LONG
             ).show()
-            finish()
-        }
+            startActivity(Intent(this, MainActivity::class.java))
+            //finish()
+        }*/
 
+        //finish()
     }
 
+    override fun onBackPressed() {
+        Log.d(TAG, "onBackPressed")
+        finish()
+        super.onBackPressed()
+    }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
+        // Login with Firebase:
+        // - errore dopo il login (risolto);
+        // - impedire all'utente di uscire dall'intent di login (risolto).
+
+        Log.d(TAG, "onSignInResult")
         val response = result.idpResponse
+        // L'utente cerca di tornare indietro.
+        if (response?.error == null) {
+            Log.d(TAG, "onSignInResult is ${response?.error}, call finish()")
+            onBackPressed()
+        }
+
         if (result.resultCode == RESULT_OK) {
             // Successfully signed in
+            Log.i(TAG, "Logged!")
             val user = FirebaseAuth.getInstance().currentUser
             Toast.makeText(this@LoginActivity, "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
             startActivity(Intent(this, MainActivity::class.java))
             finish()
-            // TODO
-            // Login with Firebase:
-            // - errore dopo il login (risolto);
-            // - impedire di uscire dalla pagina tornando al fragment precedente.
         } else {
 
             Toast.makeText(
@@ -62,10 +79,6 @@ class LoginActivity : AppCompatActivity() {
             ).show()
 
             Log.d(TAG, "${response?.error?.errorCode}")
-            // Sign in failed. If response is null the user canceled the
-            // sign-in flow using the back button. Otherwise check
-            // response.getError().getErrorCode() and handle the error.
-            // ...
         }
     }
 
@@ -80,7 +93,10 @@ class LoginActivity : AppCompatActivity() {
             .setIsSmartLockEnabled(false)
             .setAvailableProviders(providers)
             .build()
+
+        signInIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         signInLauncher.launch(signInIntent)
+        Log.d(TAG, "in createSignInIntent")
 
     }
 }
