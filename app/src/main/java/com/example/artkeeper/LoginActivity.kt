@@ -76,7 +76,7 @@ class LoginActivity : AppCompatActivity() {
 
         val signInIntent = AuthUI.getInstance()
             .createSignInIntentBuilder()
-            .setIsSmartLockEnabled( false)
+            .setIsSmartLockEnabled(false)
             .setAvailableProviders(providers)
             .build()
 
