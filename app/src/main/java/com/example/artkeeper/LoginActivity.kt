@@ -71,12 +71,12 @@ class LoginActivity : AppCompatActivity() {
 
         val providers = arrayListOf(
             AuthUI.IdpConfig.GoogleBuilder().build(),
-            AuthUI.IdpConfig.TwitterBuilder().build(),
+            AuthUI.IdpConfig.FacebookBuilder().build(),
         )
 
         val signInIntent = AuthUI.getInstance()
             .createSignInIntentBuilder()
-            .setIsSmartLockEnabled(false)
+            .setIsSmartLockEnabled( false)
             .setAvailableProviders(providers)
             .build()
 
