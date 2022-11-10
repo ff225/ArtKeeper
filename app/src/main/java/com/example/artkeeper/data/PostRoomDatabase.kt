@@ -6,13 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.artkeeper.data.model.Post
+import com.example.artkeeper.data.model.User
 import com.example.artkeeper.utils.Converters
 
-@Database(entities = [Post::class], version = 2, exportSchema = false)
+@Database(entities = [Post::class, User::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class PostRoomDatabase : RoomDatabase() {
 
     abstract fun postDao(): PostDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile
