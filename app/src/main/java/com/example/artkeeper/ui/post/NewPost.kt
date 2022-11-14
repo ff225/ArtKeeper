@@ -2,7 +2,6 @@ package com.example.artkeeper.ui.post
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
@@ -10,18 +9,20 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.artkeeper.BuildConfig
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentNewPostBinding
+import com.example.artkeeper.presentation.PostViewModel
+import com.example.artkeeper.presentation.PostViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.viewmodel.PostViewModel
-import com.example.artkeeper.viewmodel.PostViewModelFactory
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.FileOutputStream
@@ -32,7 +33,7 @@ import java.util.*
 
 private const val nameFragment = "NewPost"
 
-class NewPost : Fragment() {
+class NewPost : Fragment(R.layout.fragment_new_post) {
 
     enum class Source {
         CAMERA, GALLERY
@@ -42,8 +43,9 @@ class NewPost : Fragment() {
     private var _binding: FragmentNewPostBinding? = null
     private val binding
         get() = _binding!!
-    private val viewModel: PostViewModel by activityViewModels {
-        PostViewModelFactory((activity?.application as ArtKeeper).database.postDao())
+
+    private val viewModel: PostViewModel by viewModels {
+        PostViewModelFactory((requireActivity().application as ArtKeeper).postRepository)
     }
 
     override fun onCreateView(
@@ -64,24 +66,22 @@ class NewPost : Fragment() {
         binding.shareButton.setOnClickListener { shareAction() }
         binding.cancelButton.setOnClickListener { cancelAction() }
 
-        viewModel.description.observe(viewLifecycleOwner) { text ->
-            binding.textInputDescription.setText(text)
-        }
-
-        viewModel.image.observe(viewLifecycleOwner) { image ->
-            Log.d("$nameFragment - imageIsNull", (image == null).toString())
+        viewModel.imageUri.observe(viewLifecycleOwner) { image ->
             binding.imageViewPost.setImageURI(image)
-            binding.shareButton.isEnabled = image != null
+            //binding.shareButton.isEnabled = image != null
             binding.imageViewPost.visibility = if (image != null) View.VISIBLE else View.GONE
-
         }
+
+        viewModel.description.observe(viewLifecycleOwner, Observer { text ->
+            binding.textInputDescription.setText(text)
+        })
     }
 
     private val getPhotoFromGallery =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri.let {
                 if (it != null)
-                    viewModel.setImage(saveImageToInternalStorage(it))
+                    viewModel.setImageUri(saveImageToInternalStorage(it))
             }
         }
 
@@ -90,7 +90,7 @@ class NewPost : Fragment() {
             if (isSuccess) {
                 imageFromCamera.let {
                     Log.d("$nameFragment - photoPathFromCamera", it?.path.toString())
-                    viewModel.setImage(saveImageToInternalStorage(it!!))
+                    viewModel.setImageUri(saveImageToInternalStorage(it!!))
                 }
             }
 
@@ -130,17 +130,19 @@ class NewPost : Fragment() {
 
     private fun cancelAction() {
 
-        MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.cancel)
-            .setNegativeButton(R.string.no) { dialog, _ ->
-                dialog.cancel()
-            }
-            .setPositiveButton(R.string.yes) { dialog, _ ->
-                binding.imageViewPost.visibility = View.GONE
-                binding.textInputDescription.isFocusable = false
-                binding.textInputDescription.isFocusableInTouchMode = true
-                viewModel.reset()
-                dialog.dismiss()
-            }.show()
+        if (viewModel.checkPost())
+            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.cancel)
+                .setNegativeButton(R.string.no) { dialog, _ ->
+                    dialog.cancel()
+                }
+                .setPositiveButton(R.string.yes) { dialog, _ ->
+                    binding.imageViewPost.visibility = View.GONE
+                    binding.textInputDescription.isFocusable = false
+                    binding.textInputDescription.isFocusableInTouchMode = true
+                    viewModel.reset()
+                    dialog.dismiss()
+                }.show()
+        findNavController().navigate(R.id.action_move_to_home)
     }
 
     private fun fromUriToBitmap(uri: Uri) =
@@ -167,39 +169,21 @@ class NewPost : Fragment() {
     }
 
     private fun shareAction() {
-        //if (imageUri == null)
-        //  addImageToPost()
-        //else {
-        //viewModel.setImage(saveImageToInternalStorage(imageUri!!))
-        //viewModel.setDescription(binding.textInputDescription.text.toString())
+
         Log.d("$nameFragment - shareAction()", "condivido il post...")
         viewModel.setDescription(binding.textInputDescription.text.toString())
-        viewModel.sharePost()
-        findNavController().navigate(R.id.action_move_to_home)
-        //}
+        if (viewModel.checkPost()) {
+            viewModel.insert()
+            findNavController().navigate(R.id.action_move_to_home)
+        } else
+            Toast.makeText(
+                requireContext(),
+                "Devi inserire una foto per pubblicare",
+                Toast.LENGTH_LONG
+            ).show()
+
     }
 
-    /*
-    private fun addImageToPost() {
-        MaterialAlertDialogBuilder(requireContext())
-            .apply {
-                setTitle("Devi aggiungere una foto per poter pubblicare")
-                setItems(R.array.choice, DialogInterface.OnClickListener { dialog, which ->
-                    when (which) {
-                        0 -> {
-                            takePhoto(Source.CAMERA)
-                            dialog.dismiss()
-                        }
-                        1 -> {
-                            takePhoto(Source.GALLERY)
-                            dialog.dismiss()
-                        }
-                    }
-                })
-
-            }.show()
-    }
-     */
 
     override fun onDestroy() {
         super.onDestroy()
