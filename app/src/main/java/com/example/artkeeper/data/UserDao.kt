@@ -12,10 +12,9 @@ interface UserDao {
     @Update
     suspend fun update(user: User)
 
-    /*
     @Delete
-    suspend fun delete(uid: String)
-*/
+    suspend fun delete(user: User)
+
     @Query("SELECT * FROM users WHERE uid=:uid")
-    suspend fun getUser(uid: String): User
+    suspend fun getUser(uid: String): User?
 }
