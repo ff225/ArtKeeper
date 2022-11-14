@@ -9,18 +9,32 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.coroutineScope
 import androidx.navigation.fragment.findNavController
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentLoginBinding
+import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.viewmodel.ProfileViewModel
+import com.example.artkeeper.viewmodel.ProfileViewModelFactory
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class LoginFragment : Fragment() {
     companion object {
         const val TAG = "LoginFragment"
+    }
+
+    private val viewModel: ProfileViewModel by viewModels {
+        ProfileViewModelFactory(
+            (activity?.application as ArtKeeper).database.userDao(),
+            (activity?.application as ArtKeeper).database.postDao()
+        )
     }
 
     private var _binding: FragmentLoginBinding? = null
@@ -67,12 +81,25 @@ class LoginFragment : Fragment() {
             Log.i(TAG, "Logged!")
             val user = FirebaseAuth.getInstance().currentUser
             Toast.makeText(requireContext(), "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
+
+            //viewModel.reset()
+            Log.d(TAG, viewModel.isRegistered().toString())
+
+            //viewModel.reset()
+            //val u = viewModel.isRegistered()
+
+            lifecycle.coroutineScope.launch(Dispatchers.Main) {
+                viewModel.reset()
+                if (viewModel.isRegistered() == null)
+                    findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
+                else
+                    findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            }
+
             // TODO
             //  - Se l'utente è ha inserito le informazioni base
             //  - ->MainFragment
             //  - else -> RegistrationFragment
-            findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
-
             Log.d(TAG, "nome: ${user.displayName}")
         } else {
             Toast.makeText(
