@@ -33,7 +33,7 @@ class MainFragment : Fragment() {
     private lateinit var recyclerView: RecyclerView
     private val viewModel: PostViewModel by activityViewModels { PostViewModelFactory((activity?.application as ArtKeeper).database.postDao()) }
 
-    
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
