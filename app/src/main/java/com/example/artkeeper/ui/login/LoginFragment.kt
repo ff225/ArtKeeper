@@ -9,31 +9,30 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.coroutineScope
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentLoginBinding
+import com.example.artkeeper.presentation.ProfileViewModel
+import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.viewmodel.ProfileViewModel
-import com.example.artkeeper.viewmodel.ProfileViewModelFactory
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class LoginFragment : Fragment() {
     companion object {
         const val TAG = "LoginFragment"
     }
 
-    private val viewModel: ProfileViewModel by viewModels {
+    private val viewModel by activityViewModels<ProfileViewModel> {
         ProfileViewModelFactory(
-            (activity?.application as ArtKeeper).database.userDao(),
-            (activity?.application as ArtKeeper).database.postDao()
+            (activity?.application as ArtKeeper).userRepository,
+            (activity?.application as ArtKeeper).postRepository
         )
     }
 
@@ -70,8 +69,6 @@ class LoginFragment : Fragment() {
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
-        // Login with Firebase:
-        // - errore dopo il login (risolto).
 
         Log.d(TAG, "onSignInResult")
         val response = result.idpResponse
@@ -82,24 +79,22 @@ class LoginFragment : Fragment() {
             val user = FirebaseAuth.getInstance().currentUser
             Toast.makeText(requireContext(), "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
 
-            //viewModel.reset()
-            Log.d(TAG, viewModel.isRegistered().toString())
 
-            //viewModel.reset()
-            //val u = viewModel.isRegistered()
+            //  - Se l'utente ha inserito le informazioni base
+            //  - -> MainFragment
+            //  - else -> RegistrationFragment
 
-            lifecycle.coroutineScope.launch(Dispatchers.Main) {
-                viewModel.reset()
-                if (viewModel.isRegistered() == null)
-                    findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
-                else
-                    findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            runBlocking {
+                val job = launch { viewModel.getUserRepo(user.uid) }
+                job.join()
             }
 
-            // TODO
-            //  - Se l'utente è ha inserito le informazioni base
-            //  - ->MainFragment
-            //  - else -> RegistrationFragment
+            if (viewModel.user.value == null)
+                findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
+            else
+                findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+
+
             Log.d(TAG, "nome: ${user.displayName}")
         } else {
             Toast.makeText(
