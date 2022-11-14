@@ -53,7 +53,7 @@ class MainFragment : Fragment() {
         recyclerView.adapter = postAdapter
 
         viewModel.allPost.observe(viewLifecycleOwner) { post ->
-            post?.let {
+            post.let {
                 postAdapter.submitList(it)
             }
         }
