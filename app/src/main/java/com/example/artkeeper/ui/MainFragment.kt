@@ -8,19 +8,16 @@ import android.view.ViewGroup
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.coroutineScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
 import com.example.artkeeper.databinding.FragmentMainBinding
+import com.example.artkeeper.presentation.PostViewModel
+import com.example.artkeeper.presentation.PostViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.viewmodel.PostViewModel
-import com.example.artkeeper.viewmodel.PostViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MainFragment : Fragment() {
     companion object {
@@ -31,7 +28,7 @@ class MainFragment : Fragment() {
     private val binding: FragmentMainBinding
         get() = _binding!!
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: PostViewModel by activityViewModels { PostViewModelFactory((activity?.application as ArtKeeper).database.postDao()) }
+    private val viewModel: PostViewModel by activityViewModels { PostViewModelFactory((activity?.application as ArtKeeper).postRepository) }
 
 
     override fun onCreateView(
@@ -55,8 +52,8 @@ class MainFragment : Fragment() {
         val postAdapter = PostAdapter()
         recyclerView.adapter = postAdapter
 
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.getAllPost().collect {
+        viewModel.allPost.observe(viewLifecycleOwner) { post ->
+            post?.let {
                 postAdapter.submitList(it)
             }
         }
