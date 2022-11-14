@@ -6,13 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentRegistrationBinding
+import com.example.artkeeper.presentation.RegistrationViewModel
+import com.example.artkeeper.presentation.RegistrationViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.viewmodel.RegistrationViewModel
-import com.example.artkeeper.viewmodel.RegistrationViewModelFactory
+
 
 class RegistrationFragment : Fragment() {
     companion object {
@@ -24,11 +25,12 @@ class RegistrationFragment : Fragment() {
         get() = _binding!!
 
 
-    private val viewModel: RegistrationViewModel by activityViewModels {
+    private val viewModel: RegistrationViewModel by viewModels {
         RegistrationViewModelFactory(
-            (activity?.application as ArtKeeper).database.userDao()
+            (activity?.application as ArtKeeper).userRepository
         )
     }
+
 
     //TODO onBackPressed show dialog (sei sicuro di voler abbandonare? dovrai registrarti...)
 
@@ -43,7 +45,7 @@ class RegistrationFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        
+
         binding.confirmButton.setOnClickListener {
             Log.d(TAG, "Confirm")
 
