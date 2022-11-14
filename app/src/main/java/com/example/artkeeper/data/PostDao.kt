@@ -22,7 +22,7 @@ interface PostDao {
     @Query("SELECT * FROM post ORDER BY post_timestamp DESC")
     fun getPosts(): Flow<List<Post>>
 
-    //TODO modificare con uid
+    // modificare con uid
     @Query("SELECT * FROM post WHERE uid_user = :uid ORDER by post_timestamp DESC")
     fun getUserPosts(uid: String): Flow<List<Post>>
 
