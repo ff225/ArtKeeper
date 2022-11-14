@@ -1,11 +1,12 @@
 package com.example.artkeeper.ui.profile
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.coroutineScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -13,8 +14,8 @@ import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
 import com.example.artkeeper.databinding.FragmentProfileBinding
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.viewmodel.PostViewModel
-import com.example.artkeeper.viewmodel.PostViewModelFactory
+import com.example.artkeeper.viewmodel.ProfileViewModel
+import com.example.artkeeper.viewmodel.ProfileViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -25,7 +26,12 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: PostViewModel by activityViewModels { PostViewModelFactory((activity?.application as ArtKeeper).database.postDao()) }
+    private val viewModel: ProfileViewModel by viewModels {
+        ProfileViewModelFactory(
+            (activity?.application as ArtKeeper).database.userDao(),
+            (activity?.application as ArtKeeper).database.postDao()
+        )
+    }
 
 
     override fun onCreateView(
@@ -42,14 +48,19 @@ class ProfileFragment : Fragment() {
         val adapter = PostAdapter()
         recyclerView.adapter = adapter
 
+        Log.d("ProfileFragment", viewModel.getName().toString())
+        binding.tvName.text = viewModel.getName()
+        binding.tvLastName.text = viewModel.getLastName()
+        binding.tvUsername.text = viewModel.getNickName()
+
         lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.getNumOfPost("Francesco").collect {
+            viewModel.getNumOfPost().collect {
                 binding.tvNPost.text = getString(R.string.num_post, it.toString())
             }
         }
 
         lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.getUserPosts("Francesco").collect { posts ->
+            viewModel.getUserPosts().collect { posts ->
                 adapter.submitList(posts)
             }
         }
