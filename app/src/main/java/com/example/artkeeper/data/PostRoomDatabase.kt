@@ -9,7 +9,7 @@ import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.utils.Converters
 
-@Database(entities = [Post::class, User::class], version = 4, exportSchema = false)
+@Database(entities = [Post::class, User::class], version = 6, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class PostRoomDatabase : RoomDatabase() {
 
