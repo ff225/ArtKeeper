@@ -19,11 +19,6 @@ class RegistrationFragment : Fragment() {
         const val TAG = "RegistrationFragment"
     }
 
-    lateinit var name: String
-    lateinit var lastName: String
-    lateinit var nickName: String
-
-
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
@@ -48,12 +43,7 @@ class RegistrationFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-        name = binding.textInputName.text.toString()
-        lastName = binding.textInputLastname.text.toString()
-        nickName = binding.textInputNickname.text.toString()
-
-        name
+        
         binding.confirmButton.setOnClickListener {
             Log.d(TAG, "Confirm")
 
