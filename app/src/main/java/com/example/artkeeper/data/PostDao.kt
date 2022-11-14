@@ -22,10 +22,12 @@ interface PostDao {
     @Query("SELECT * FROM post ORDER BY post_timestamp DESC")
     fun getPosts(): Flow<List<Post>>
 
-    @Query("SELECT * FROM post WHERE nickname = :nickname ORDER by post_timestamp DESC")
-    fun getUserPosts(nickname: String): Flow<List<Post>>
+    //TODO modificare con uid
+    @Query("SELECT * FROM post WHERE uid_user = :uid ORDER by post_timestamp DESC")
+    fun getUserPosts(uid: String): Flow<List<Post>>
 
-    //TODO imposto a flow perché deve aggiornarsi ad ogni post caricato
-    @Query("SELECT COUNT(id) FROM post WHERE nickname =:nickname")
-    fun getNumPost(nickname: String): Flow<Int>
+    // imposto a flow perché deve aggiornarsi ad ogni post caricato
+    //TODO modificare con uid
+    @Query("SELECT COUNT(id) FROM post WHERE uid_user =:uid")
+    fun getNumPost(uid: String): Flow<Int>
 }
