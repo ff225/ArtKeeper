@@ -20,7 +20,13 @@
     <string name="no">No</string>
     <string name="folder_image">"ArtKeeperImages"</string>
     <string name="num_post">%s post</string>
-
+    <string name="facebook_application_id" translatable="false">1727419694324946</string>
+    <string name="facebook_login_protocol_scheme" translatable="false">fb1727419694324946</string>
+    <string name="facebook_client_token">8afe45689e3cc3daaf3f0a9597a9b3c2</string>
+    <string name="name">Nome</string>
+    <string name="last_name">Cognome</string>
+    <string name="nickname">Nickname</string>
+    <string name="confirm">Conferma</string>
     <array name="choice">
         <item>Fotocamera</item>
         <item>Galleria</item>
