@@ -42,7 +42,7 @@ class PostAdapter : ListAdapter<Post, PostAdapter.PostAdatperViewHolder>(DiffCal
                 .error(R.drawable.ic_baseline_settings_24)
                 .into(binding.photoItem)
             //binding.photoItem.setImageURI()
-            binding.nickNameItem.text = post.nickName
+            //binding.nickNameItem.text = post.nickName
             binding.likeItem.text = post.nLike.toString()
             binding.descriptionItem.apply {
                 if (post.description.isEmpty())
