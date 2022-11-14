@@ -9,6 +9,11 @@
         android:name="com.example.artkeeper.ui.login.LoginFragment"
         android:label="Accedi">
         <action
+            android:id="@+id/action_loginFragment_to_mainFragment"
+            app:destination="@+id/home"
+            app:popUpTo="@id/login"
+            app:popUpToInclusive="true" />
+        <action
             android:id="@+id/action_loginFragment_to_registrationFragment"
             app:destination="@id/registrationFragment"
             app:popUpTo="@id/login"
