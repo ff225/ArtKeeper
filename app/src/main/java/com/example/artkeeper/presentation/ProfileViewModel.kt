@@ -25,22 +25,19 @@ class ProfileViewModel(
     val numPost: LiveData<Int> = postRepo.getNumPost(uid!!).asLiveData()
     val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(uid!!).asLiveData()
 
-    suspend fun checkUser(uid: String): Boolean {
+    fun checkUser(uid: String): Boolean {
         return userRepo.checkUser(uid)
     }
 
+    /*
     fun getUserRepo(uid: String): LiveData<User> {
         return userRepo.getUser(uid).asLiveData()
     }
 
-    /*
+
     suspend fun getUserRepo(uid: String) {
         _user.value = userRepo.getUser(uid)
     }*/
-
-    fun getUserP() = liveData<List<Post>?> {
-        postRepo.getAllUserPost(uid!!).asLiveData()
-    }
 
     /*
             fun getUserPost(): LiveData<List<Post>> {
