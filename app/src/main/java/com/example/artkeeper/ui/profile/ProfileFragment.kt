@@ -50,11 +50,11 @@ class ProfileFragment : Fragment() {
             binding.tvUsername.text = it?.nickName
         }
 
-        viewModel.getNumPostUser().observe(viewLifecycleOwner) {
+        viewModel.numPost.observe(viewLifecycleOwner) {
             binding.tvNPost.text = getString(R.string.num_post, it.toString())
         }
 
-        viewModel.getUserPost().observe(viewLifecycleOwner) { post ->
+        viewModel.postUser.observe(viewLifecycleOwner) { post ->
             post.let {
                 adapter.submitList(post)
             }
