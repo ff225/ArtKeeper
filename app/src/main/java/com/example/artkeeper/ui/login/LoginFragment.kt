@@ -21,6 +21,7 @@ import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -84,12 +85,13 @@ class LoginFragment : Fragment() {
             //  - -> MainFragment
             //  - else -> RegistrationFragment
 
+            var userFrom = false
             runBlocking {
-                val job = launch { viewModel.getUserRepo(user.uid) }
+                val job = launch(Dispatchers.IO) { userFrom = viewModel.checkUser(user.uid) }
                 job.join()
             }
-
-            if (viewModel.user.value == null)
+            Log.d(TAG, userFrom.toString())
+            if (!userFrom)
                 findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
             else
                 findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
