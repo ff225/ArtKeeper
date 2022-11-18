@@ -8,7 +8,7 @@ import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
 
 class ArtKeeper : Application() {
-    val database: PostRoomDatabase by lazy { PostRoomDatabase.getDatabase(this) }
+    private val database: PostRoomDatabase by lazy { PostRoomDatabase.getDatabase(this) }
     val postRepository: PostRepository by lazy { PostRepository(PostLocalDataSource(database.postDao())) }
     val userRepository: UserRepository by lazy { UserRepository(UserLocalDataSource(database.userDao())) }
 }
