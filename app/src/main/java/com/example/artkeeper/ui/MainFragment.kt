@@ -28,7 +28,9 @@ class MainFragment : Fragment() {
     private val binding: FragmentMainBinding
         get() = _binding!!
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: PostViewModel by activityViewModels { PostViewModelFactory((activity?.application as ArtKeeper).postRepository) }
+    private val viewModel: PostViewModel by activityViewModels {
+        PostViewModelFactory((activity?.application as ArtKeeper).postRepository)
+    }
 
 
     override fun onCreateView(
