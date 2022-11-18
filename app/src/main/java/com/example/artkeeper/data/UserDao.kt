@@ -2,6 +2,7 @@ package com.example.artkeeper.data
 
 import androidx.room.*
 import com.example.artkeeper.data.model.User
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UserDao {
@@ -12,10 +13,12 @@ interface UserDao {
     @Update
     suspend fun update(user: User)
 
-    /*
     @Delete
-    suspend fun delete(uid: String)
-*/
+    suspend fun delete(user: User)
+
     @Query("SELECT * FROM users WHERE uid=:uid")
-    suspend fun getUser(uid: String): User
+    fun getUser(uid: String): Flow<User>
+
+    @Query("SELECT count(*) FROM users WHERE uid= :uid")
+    fun checkUser(uid: String): Boolean
 }

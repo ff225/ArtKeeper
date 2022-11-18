@@ -1,23 +1,19 @@
 package com.example.artkeeper.ui.profile
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.coroutineScope
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
 import com.example.artkeeper.databinding.FragmentProfileBinding
+import com.example.artkeeper.presentation.ProfileViewModel
+import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.viewmodel.ProfileViewModel
-import com.example.artkeeper.viewmodel.ProfileViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 
 class ProfileFragment : Fragment() {
@@ -26,10 +22,10 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: ProfileViewModel by viewModels {
+    private val viewModel: ProfileViewModel by activityViewModels {
         ProfileViewModelFactory(
-            (activity?.application as ArtKeeper).database.userDao(),
-            (activity?.application as ArtKeeper).database.postDao()
+            (activity?.application as ArtKeeper).userRepository,
+            (activity?.application as ArtKeeper).postRepository
         )
     }
 
@@ -48,22 +44,22 @@ class ProfileFragment : Fragment() {
         val adapter = PostAdapter()
         recyclerView.adapter = adapter
 
-        Log.d("ProfileFragment", viewModel.getName().toString())
-        binding.tvName.text = viewModel.getName()
-        binding.tvLastName.text = viewModel.getLastName()
-        binding.tvUsername.text = viewModel.getNickName()
+        viewModel.user.observe(viewLifecycleOwner) {
+            binding.tvName.text = it?.firstName
+            binding.tvLastName.text = it?.lastName
+            binding.tvUsername.text = it?.nickName
+        }
 
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.getNumOfPost().collect {
-                binding.tvNPost.text = getString(R.string.num_post, it.toString())
+        viewModel.numPost.observe(viewLifecycleOwner) {
+            binding.tvNPost.text = getString(R.string.num_post, it.toString())
+        }
+
+        viewModel.postUser.observe(viewLifecycleOwner) { post ->
+            post.let {
+                adapter.submitList(post)
             }
         }
 
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.getUserPosts().collect { posts ->
-                adapter.submitList(posts)
-            }
-        }
         binding.btnSettings.setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_settingsFragment)
         }
