@@ -3,24 +3,25 @@ package com.example.artkeeper.presentation
 import android.net.Uri
 import androidx.lifecycle.*
 import com.example.artkeeper.data.model.Post
+import com.example.artkeeper.data.model.User
 import com.example.artkeeper.data.repository.PostRepository
+import com.example.artkeeper.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
 
-class PostViewModel(private val repo: PostRepository) : ViewModel() {
+class PostViewModel(private val repo: PostRepository, userRepo: UserRepository) :
+    ViewModel() {
 
-    private val uid: String? = FirebaseAuth.getInstance().currentUser?.uid
+    private val uid: String = FirebaseAuth.getInstance().currentUser!!.uid
+    val user: LiveData<User> = userRepo.getUser(uid).asLiveData()
     private var _imageUri: MutableLiveData<Uri?> = MutableLiveData(null)
     val imageUri: LiveData<Uri?>
         get() = _imageUri
     private var _description: MutableLiveData<String?> = MutableLiveData(null)
     val description: LiveData<String?>
         get() = _description
-
-    val allPost: LiveData<List<Post>> = repo.getAllPost().asLiveData()
-
 
     fun setImageUri(imageUri: Uri) {
         _imageUri.value = imageUri
@@ -42,13 +43,12 @@ class PostViewModel(private val repo: PostRepository) : ViewModel() {
         return true
     }
 
-
     private fun createPost(): Post {
 
         return Post(
             0,
-            uid!!,
-            "Francesco",
+            uid,
+            user.value!!.nickName,
             _imageUri.value!!,
             0,
             _description.value,
@@ -71,8 +71,11 @@ class PostViewModel(private val repo: PostRepository) : ViewModel() {
 
 }
 
-class PostViewModelFactory(private val repo: PostRepository) : ViewModelProvider.Factory {
+class PostViewModelFactory(
+    private val postRepo: PostRepository,
+    private val userRepo: UserRepository
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return PostViewModel(repo) as T
+        return PostViewModel(postRepo, userRepo) as T
     }
 }
