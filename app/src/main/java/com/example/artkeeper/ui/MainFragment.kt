@@ -7,14 +7,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
 import com.example.artkeeper.databinding.FragmentMainBinding
-import com.example.artkeeper.presentation.PostViewModel
-import com.example.artkeeper.presentation.PostViewModelFactory
+import com.example.artkeeper.presentation.MainViewModel
+import com.example.artkeeper.presentation.MainViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
@@ -28,8 +28,10 @@ class MainFragment : Fragment() {
     private val binding: FragmentMainBinding
         get() = _binding!!
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: PostViewModel by activityViewModels {
-        PostViewModelFactory((activity?.application as ArtKeeper).postRepository)
+    private val viewModel: MainViewModel by viewModels {
+        MainViewModelFactory(
+            (requireActivity().application as ArtKeeper).postRepository
+        )
     }
 
 
