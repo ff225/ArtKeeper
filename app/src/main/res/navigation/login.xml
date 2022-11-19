@@ -11,7 +11,8 @@
         <action
             android:id="@+id/action_loginFragment_to_mainFragment"
             app:destination="@+id/home"
-            app:popUpTo="@id/login"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/home"
             app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_loginFragment_to_registrationFragment"
@@ -27,6 +28,7 @@
         <action
             android:id="@+id/action_registrationFragment_to_mainFragment"
             app:destination="@id/home"
+            app:launchSingleTop="true"
             app:popUpTo="@id/login"
             app:popUpToInclusive="true" />
     </fragment>

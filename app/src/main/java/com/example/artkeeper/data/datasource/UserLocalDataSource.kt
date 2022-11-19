@@ -2,7 +2,6 @@ package com.example.artkeeper.data.datasource
 
 import com.example.artkeeper.data.UserDao
 import com.example.artkeeper.data.model.User
-import com.example.artkeeper.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
 class UserLocalDataSource(private val userDao: UserDao) {
@@ -11,6 +10,7 @@ class UserLocalDataSource(private val userDao: UserDao) {
     suspend fun update(user: User) = userDao.update(user)
     suspend fun delete(user: User) = userDao.delete(user)
 
-    suspend fun getUser(uid: String): User? = userDao.getUser(uid)
+    fun getUser(uid: String): Flow<User> = userDao.getUser(uid)
+    fun checkUser(uid: String): Boolean = userDao.checkUser(uid)
 
 }
