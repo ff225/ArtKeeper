@@ -28,15 +28,12 @@ class MainFragment : Fragment() {
     private val binding: FragmentMainBinding
         get() = _binding!!
     private lateinit var recyclerView: RecyclerView
-<<<<<<< HEAD
-    private val viewModel: PostViewModel by activityViewModels {
-        PostViewModelFactory((activity?.application as ArtKeeper).postRepository)
-=======
+
+
     private val viewModel: MainViewModel by viewModels {
         MainViewModelFactory(
             (requireActivity().application as ArtKeeper).postRepository
         )
->>>>>>> post
     }
 
 
