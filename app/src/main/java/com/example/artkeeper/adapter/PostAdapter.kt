@@ -45,7 +45,7 @@ class PostAdapter : ListAdapter<Post, PostAdapter.PostAdatperViewHolder>(DiffCal
             binding.nickNameItem.text = post.nickName
             binding.likeItem.text = post.nLike.toString()
             binding.descriptionItem.apply {
-                if (post.description.isEmpty())
+                if (post.description == null)
                     visibility = View.GONE
                 else
                     text = post.description

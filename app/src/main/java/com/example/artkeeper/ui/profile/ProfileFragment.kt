@@ -6,17 +6,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.coroutineScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
 import com.example.artkeeper.databinding.FragmentProfileBinding
+import com.example.artkeeper.presentation.ProfileViewModel
+import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.viewmodel.PostViewModel
-import com.example.artkeeper.viewmodel.PostViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 
 class ProfileFragment : Fragment() {
@@ -25,7 +22,12 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: PostViewModel by activityViewModels { PostViewModelFactory((activity?.application as ArtKeeper).database.postDao()) }
+    private val viewModel: ProfileViewModel by activityViewModels {
+        ProfileViewModelFactory(
+            (activity?.application as ArtKeeper).userRepository,
+            (activity?.application as ArtKeeper).postRepository
+        )
+    }
 
 
     override fun onCreateView(
@@ -42,24 +44,29 @@ class ProfileFragment : Fragment() {
         val adapter = PostAdapter()
         recyclerView.adapter = adapter
 
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.getNumOfPost("Francesco").collect {
-                binding.tvNPost.text = getString(R.string.num_post, it.toString())
+        viewModel.user.observe(viewLifecycleOwner) {
+            binding.tvName.text = it?.firstName
+            binding.tvLastName.text = it?.lastName
+            binding.tvUsername.text = it?.nickName
+        }
+
+        viewModel.numPost.observe(viewLifecycleOwner) {
+            binding.tvNPost.text = getString(R.string.num_post, it.toString())
+        }
+
+        viewModel.postUser.observe(viewLifecycleOwner) { post ->
+            post.let {
+                adapter.submitList(post)
             }
         }
 
-        lifecycle.coroutineScope.launch(Dispatchers.IO) {
-            viewModel.getUserPosts("Francesco").collect { posts ->
-                adapter.submitList(posts)
-            }
-        }
         binding.btnSettings.setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_settingsFragment)
         }
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         _binding = null
+        super.onDestroy()
     }
 }

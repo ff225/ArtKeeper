@@ -103,7 +103,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
             android:layout_weight="1"
-            android:enabled="false"
+            android:enabled="true"
             android:text="@string/share" />
 
     </LinearLayout>

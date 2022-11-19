@@ -9,5 +9,13 @@
         android:id="@+id/mainFragment"
         android:name="com.example.artkeeper.ui.MainFragment"
         android:label="@string/app_name"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_main">
+
+        <action
+            android:id="@+id/action_move_to_login"
+            app:destination="@+id/login"
+            app:popUpTo="@id/home"
+            app:popUpToInclusive="true" />
+    </fragment>
+
 </navigation>

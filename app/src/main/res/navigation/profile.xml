@@ -18,5 +18,11 @@
         android:id="@+id/settingsFragment"
         android:name="com.example.artkeeper.ui.profile.SettingsFragment"
         android:label="@string/settings"
-        tools:layout="@layout/fragment_settings" />
+        tools:layout="@layout/fragment_settings">
+        <action
+            android:id="@+id/action_logout_move_to_home"
+            app:destination="@+id/home"
+            app:popUpTo="@id/profile"
+            app:popUpToInclusive="true" />
+    </fragment>
 </navigation>

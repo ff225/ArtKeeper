@@ -20,7 +20,10 @@
     <string name="no">No</string>
     <string name="folder_image">"ArtKeeperImages"</string>
     <string name="num_post">%s post</string>
-
+    <string name="name">Nome</string>
+    <string name="last_name">Cognome</string>
+    <string name="nickname">Nickname</string>
+    <string name="confirm">Conferma</string>
     <array name="choice">
         <item>Fotocamera</item>
         <item>Galleria</item>
