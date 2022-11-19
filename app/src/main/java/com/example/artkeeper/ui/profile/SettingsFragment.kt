@@ -27,8 +27,11 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.btnLogout.setOnClickListener {
-            AuthUI.getInstance().signOut(requireActivity())
-            findNavController().navigate(R.id.action_logout_move_to_home)
+            AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
+                if (it.isComplete)
+                    findNavController().navigate(R.id.action_logout_move_to_home)
+            }
+
         }
     }
 }
