@@ -31,9 +31,11 @@ import java.io.OutputStream
 import java.util.*
 
 
-private const val nameFragment = "NewPost"
-
 class NewPost : Fragment(R.layout.fragment_new_post) {
+
+    companion object {
+        const val TAG = "NewPost"
+    }
 
     enum class Source {
         CAMERA, GALLERY
@@ -45,7 +47,10 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
         get() = _binding!!
 
     private val viewModel: PostViewModel by viewModels {
-        PostViewModelFactory((requireActivity().application as ArtKeeper).postRepository)
+        PostViewModelFactory(
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).userRepository
+        )
     }
 
     override fun onCreateView(
@@ -61,6 +66,9 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewModel.user.observe(viewLifecycleOwner) { user ->
+            Log.d(TAG, user.nickName)
+        }
         binding.pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
         binding.pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
         binding.shareButton.setOnClickListener { shareAction() }
@@ -89,7 +97,7 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
         registerForActivityResult(ActivityResultContracts.TakePicture()) { isSuccess ->
             if (isSuccess) {
                 imageFromCamera.let {
-                    Log.d("$nameFragment - photoPathFromCamera", it?.path.toString())
+                    Log.d(TAG, it?.path.toString())
                     viewModel.setImageUri(saveImageToInternalStorage(it!!))
                 }
             }
@@ -99,11 +107,11 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
     private fun takePhoto(photoFrom: Source) {
         when (photoFrom) {
             Source.GALLERY -> {
-                Log.d("$nameFragment - Source Gallery", "Pick photo from gallery")
+                Log.d(TAG, "Pick photo from gallery")
                 getPhotoFromGallery.launch("image/*")
             }
             else -> {
-                Log.d("$nameFragment - Source Camera", "Pick photo from camera")
+                Log.d(TAG, "Pick photo from camera")
                 lifecycleScope.launchWhenStarted {
                     getTmpFileUri().let { uri ->
                         imageFromCamera = uri
@@ -170,7 +178,7 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
 
     private fun shareAction() {
 
-        Log.d("$nameFragment - shareAction()", "condivido il post...")
+        Log.d(TAG, "condivido il post...")
         viewModel.setDescription(binding.textInputDescription.text.toString())
         if (viewModel.checkPost()) {
             viewModel.insert()
@@ -186,7 +194,8 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
 
 
     override fun onDestroy() {
-        super.onDestroy()
         _binding = null
+        Log.d(TAG, "onDestroy")
+        super.onDestroy()
     }
 }
