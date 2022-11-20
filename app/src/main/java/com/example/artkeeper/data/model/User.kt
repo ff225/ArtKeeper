@@ -8,9 +8,8 @@ import androidx.room.PrimaryKey
 data class User(
     @PrimaryKey val uid: String,
     @ColumnInfo(name = "first_name") val firstName: String,
-    @ColumnInfo(name = "last_name")val lastName: String,
-    @ColumnInfo(name = "nickname")val nickName: String,
-    @ColumnInfo(name = "num_child")val nChild: Int,
-    //TODO risolvere problema legato all'array di stringhe name_child
-    @ColumnInfo(name = "name_child") val nameChild: String
+    @ColumnInfo(name = "last_name") val lastName: String,
+    @ColumnInfo(name = "nickname") val nickName: String,
+    @ColumnInfo(name = "num_child") val nChild: Int,
+    @ColumnInfo(name = "name_child") val nameChild: List<String>?
 )
