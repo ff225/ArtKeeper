@@ -27,7 +27,6 @@ interface PostDao {
     fun getUserPosts(uid: String): Flow<List<Post>>
 
     // imposto a flow perché deve aggiornarsi ad ogni post caricato
-    //TODO modificare con uid
     @Query("SELECT COUNT(id) FROM post WHERE uid_user =:uid")
     fun getNumPost(uid: String): Flow<Int>
 }
