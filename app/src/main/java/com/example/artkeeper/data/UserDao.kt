@@ -16,6 +16,9 @@ interface UserDao {
     @Delete
     suspend fun delete(user: User)
 
+    @Query("UPDATE users SET num_child=:nChild, name_child=:nameChild WHERE uid=:uid")
+    suspend fun addChild(uid: String, nChild: Int, nameChild: List<String>)
+
     @Query("SELECT * FROM users WHERE uid=:uid")
     fun getUser(uid: String): Flow<User>
 
