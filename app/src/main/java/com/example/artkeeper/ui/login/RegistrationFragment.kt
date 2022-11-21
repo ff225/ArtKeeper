@@ -51,11 +51,6 @@ class RegistrationFragment : Fragment() {
         binding.confirmButton.setOnClickListener {
             Log.d(TAG, "Confirm")
 
-
-            // TODO in create user inizializzare getuserpost e get numpost
-            // runblocking per registrare l'utente
-
-
             if (createUser()) {
                 runBlocking {
                     val job = launch {
@@ -63,7 +58,7 @@ class RegistrationFragment : Fragment() {
                     }
                     job.join()
                 }
-/*
+                /*
                 runBlocking {
                     val job1 = launch {
                         viewModel.getUserRepo(uid)
