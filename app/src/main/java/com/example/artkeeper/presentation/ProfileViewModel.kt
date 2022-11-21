@@ -1,5 +1,6 @@
 package com.example.artkeeper.presentation
 
+import android.util.Log
 import androidx.lifecycle.*
 import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.data.model.User
@@ -15,20 +16,43 @@ class ProfileViewModel(
 ) :
     ViewModel() {
 
-    val uid = FirebaseAuth.getInstance().currentUser?.uid
-    private var _name: String = ""
-    private var _lastName: String = ""
-    private var _nickName: String = ""
-
-    //private var _user: LiveData<User> = MutableLiveData(null)
+    private val uid = FirebaseAuth.getInstance().currentUser?.uid
     val user: LiveData<User> = userRepo.getUser(uid!!).asLiveData()
     val numPost: LiveData<Int> = postRepo.getNumPost(uid!!).asLiveData()
     val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(uid!!).asLiveData()
+    private lateinit var _name: String
+    private lateinit var _lastName: String
+    private lateinit var _nickName: String
+    private var _nChild: Int = 0
+    private var _nameChild: MutableList<String>? = null
+
+    init {
+        reset()
+        Log.d("ProfileViewModel", "${_nChild}, ${_nameChild?.size} ")
+    }
 
     fun checkUser(uid: String): Boolean {
         return userRepo.checkUser(uid)
     }
 
+    fun setChild(name: String) {
+        reset()
+        _nameChild?.add(name)
+        Log.d("ProfileViewModel", "${_nameChild?.size}")
+    }
+
+    fun storeChild() {
+        viewModelScope.launch(Dispatchers.IO) {
+            userRepo.addChild(uid!!, _nChild, _nameChild!!)
+        }
+    }
+    /*
+    fun updateUser() {
+        viewModelScope.launch(Dispatchers.IO) {
+            userRepo.updateUser(user)
+        }
+    }
+    */
     /*
     fun getUserRepo(uid: String): LiveData<User> {
         return userRepo.getUser(uid).asLiveData()
@@ -72,8 +96,8 @@ class ProfileViewModel(
             _name,
             _lastName,
             _nickName,
-            1,
-            "Francesco"
+            _nChild,
+            _nameChild
         )
     }
 
@@ -82,22 +106,14 @@ class ProfileViewModel(
             userRepo.insertUser(createUser(uid))
         }
     }
-    /*
-    private fun insertUser(user: User) {
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepo.insertUser(user)
-        }
-    }
 
-/*
-    fun confirmUserCreation(uid: String): Boolean {
-        if (checkUserInfo()) {
-            insertUser(createUser(uid))
-            return true
-        }
-        return false
+    private fun reset() {
+        _name = ""
+        _lastName = ""
+        _nickName = ""
+        _nChild = user.value?.nChild ?: 0
+        _nameChild = user.value?.nameChild?.toMutableList() ?: mutableListOf()
     }
- */*/
 }
 
 class ProfileViewModelFactory(
