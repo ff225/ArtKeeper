@@ -29,7 +29,7 @@
             android:id="@+id/action_registrationFragment_to_mainFragment"
             app:destination="@id/home"
             app:launchSingleTop="true"
-            app:popUpTo="@id/login"
+            app:popUpTo="@id/home"
             app:popUpToInclusive="true" />
     </fragment>
 </navigation>
