@@ -102,9 +102,9 @@ class ProfileViewModel(
         )
     }
 
-    fun updateInfoUser(uid: String) {
+    fun updateInfoUser() {
         viewModelScope.launch(Dispatchers.IO) {
-            userRepo.updateUser(createUser(uid))
+            userRepo.updateUser(createUser(uid!!))
         }
     }
 
