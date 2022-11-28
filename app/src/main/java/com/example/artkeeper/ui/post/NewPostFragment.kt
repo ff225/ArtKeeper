@@ -33,7 +33,7 @@ import java.io.OutputStream
 import java.util.*
 
 
-class NewPost : Fragment(R.layout.fragment_new_post) {
+class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
     companion object {
         const val TAG = "NewPost"
