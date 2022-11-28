@@ -37,15 +37,17 @@ class ProfileViewModel(
 
     fun setChild(name: String) {
         reset()
+        _nChild += 1
         _nameChild?.add(name)
         Log.d("ProfileViewModel", "${_nameChild?.size}")
     }
 
     fun storeChild() {
         viewModelScope.launch(Dispatchers.IO) {
-            userRepo.addChild(uid!!, _nChild, _nameChild!!)
+            userRepo.addChild(uid!!, _nameChild?.size!!, _nameChild!!)
         }
     }
+
     /*
     fun updateUser() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -62,7 +64,6 @@ class ProfileViewModel(
     suspend fun getUserRepo(uid: String) {
         _user.value = userRepo.getUser(uid)
     }*/
-
     /*
             fun getUserPost(): LiveData<List<Post>> {
                 return postRepo.getAllUserPost(_user.value!!.uid).asLiveData()
@@ -88,7 +89,7 @@ class ProfileViewModel(
     }
 
     fun checkUserInfo() =
-        !(_name.equals("") || _lastName.equals("") || _nickName.equals(""))
+        !(_name == "" || _lastName == "" || _nickName == "")
 
     private fun createUser(uid: String): User {
         return User(
@@ -101,6 +102,12 @@ class ProfileViewModel(
         )
     }
 
+    fun updateInfoUser(uid: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            userRepo.updateUser(createUser(uid))
+        }
+    }
+
     fun insertUser(uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
             userRepo.insertUser(createUser(uid))
@@ -111,8 +118,9 @@ class ProfileViewModel(
         _name = ""
         _lastName = ""
         _nickName = ""
-        _nChild = user.value?.nChild ?: 0
         _nameChild = user.value?.nameChild?.toMutableList() ?: mutableListOf()
+        _nChild = user.value?.nChild ?: 0
+        Log.d("ProfileViewModel", "in reset: ${user.value?.nChild}")
     }
 }
 
