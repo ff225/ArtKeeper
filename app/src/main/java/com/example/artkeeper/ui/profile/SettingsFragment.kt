@@ -41,6 +41,11 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
+        binding.btnChangeInfo.setOnClickListener {
+            //navigate to updateinfo
+            findNavController().navigate(R.id.action_settingsFragment_to_updateInfoFragment)
+        }
+
         binding.btnAddSon.setOnClickListener {
             val inflater = requireActivity().layoutInflater
             val viewDialog = inflater.inflate(R.layout.dialog_addson, null)
