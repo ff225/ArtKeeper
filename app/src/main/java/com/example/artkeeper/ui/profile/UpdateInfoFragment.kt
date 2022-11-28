@@ -37,19 +37,24 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.textInputName.setText(viewModel.user.value?.firstName)
-        binding.textInputLastname.setText(viewModel.user.value?.lastName)
-        binding.textInputNickname.setText(viewModel.user.value?.nickName)
+
+        binding.apply {
+            textInputName.setText(viewModel.user.value?.firstName)
+            textInputLastname.setText(viewModel.user.value?.lastName)
+            textInputNickname.setText(viewModel.user.value?.nickName)
+        }
 
         binding.confirmButton.setOnClickListener {
-            viewModel.setName(binding.textInputName.text.toString())
-            viewModel.setLastName(binding.textInputLastname.text.toString())
-            viewModel.setNickName(binding.textInputNickname.text.toString())
+            viewModel.apply {
+                setName(binding.textInputName.text.toString())
+                setLastName(binding.textInputLastname.text.toString())
+                setNickName(binding.textInputNickname.text.toString())
+            }
 
             if (viewModel.checkUserInfo()) {
                 viewModel.updateInfoUser()
                 findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
-            }else
+            } else
                 Toast.makeText(
                     requireContext(),
                     "Devi riempire tutti i campi...",
