@@ -93,9 +93,12 @@ class RegistrationFragment : Fragment() {
 
     private fun createUser(): Boolean {
         //Log.d(TAG, "$name, $lastName, $nickName")
-        viewModel.setName(binding.textInputName.text.toString())
-        viewModel.setLastName(binding.textInputLastname.text.toString())
-        viewModel.setNickName(binding.textInputNickname.text.toString())
+        viewModel.apply {
+            setName(binding.textInputName.text.toString())
+            setLastName(binding.textInputLastname.text.toString())
+            setNickName(binding.textInputNickname.text.toString())
+
+        }
         return viewModel.checkUserInfo()
     }
 
