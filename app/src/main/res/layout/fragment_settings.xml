@@ -7,8 +7,8 @@
     tools:context=".ui.profile.SettingsFragment">
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_change_usn"
-        android:text="@string/change_usn"
+        android:id="@+id/btn_change_info"
+        android:text="@string/change_info"
         android:textAlignment="textStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
