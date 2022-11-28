@@ -77,19 +77,19 @@ class ProfileViewModel(
 
          */
     fun setName(name: String) {
-        _name = name
+        _name = name.trim()
     }
 
-    fun setLastName(LastName: String) {
-        _lastName = LastName
+    fun setLastName(lastName: String) {
+        _lastName = lastName.trim()
     }
 
     fun setNickName(nick: String) {
-        _nickName = nick
+        _nickName = nick.trim()
     }
 
     fun checkUserInfo() =
-        !(_name == "" || _lastName == "" || _nickName == "")
+        !(_name.isBlank() || _lastName.isBlank() || _nickName.isBlank())
 
     private fun createUser(uid: String): User {
         return User(

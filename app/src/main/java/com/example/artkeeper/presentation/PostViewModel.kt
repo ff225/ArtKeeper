@@ -29,7 +29,7 @@ class PostViewModel(private val repo: PostRepository, userRepo: UserRepository) 
     }
 
     fun setDescription(description: String) {
-        _description.value = description
+        _description.value = description.trim()
     }
 
     fun setChildName(name: String?) {
