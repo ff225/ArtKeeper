@@ -98,10 +98,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
         }
 /**/
-
-
-
-
         viewModel.imageUri.observe(viewLifecycleOwner) { image ->
             binding.imageViewPost.setImageURI(image)
             binding.imageViewPost.visibility = if (image != null) View.VISIBLE else View.GONE
