@@ -25,5 +25,18 @@
             app:launchSingleTop="true"
             app:popUpTo="@id/home"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_settingsFragment_to_updateInfoFragment"
+            app:destination="@id/updateInfoFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/updateInfoFragment"
+        android:name="com.example.artkeeper.ui.profile.UpdateInfoFragment"
+        android:label="UpdateInfoFragment" >
+        <action
+            android:id="@+id/action_updateInfoFragment_to_profileFragment"
+            app:destination="@id/profileFragment"
+            app:popUpTo="@id/profileFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>
