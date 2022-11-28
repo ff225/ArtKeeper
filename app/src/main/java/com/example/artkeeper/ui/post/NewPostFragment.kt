@@ -9,12 +9,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.RadioButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.core.view.isEmpty
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.artkeeper.BuildConfig
@@ -59,7 +61,6 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
     ): View {
         // Inflate the layout for this fragment
         _binding = FragmentNewPostBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
@@ -68,21 +69,47 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
 
         viewModel.user.observe(viewLifecycleOwner) { user ->
             Log.d(TAG, user.nickName)
+            Log.d(TAG, viewModel.user.value?.nameChild?.size.toString())
+
+            if (user.nameChild?.size != 0 && binding.radioGroup.isEmpty()) {
+                for (item in user.nameChild!!) {
+                    val radioButton = RadioButton(requireContext())
+                    radioButton.apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+                        id = item.indexOf(item)
+                        text = item
+                        //isChecked = true
+                    }
+                    binding.radioGroup.addView(radioButton)
+                }
+            }
+
+
         }
-        binding.pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
-        binding.pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
-        binding.shareButton.setOnClickListener { shareAction() }
-        binding.cancelButton.setOnClickListener { cancelAction() }
+        binding.apply {
+            pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
+            pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
+            shareButton.setOnClickListener { shareAction() }
+            cancelButton.setOnClickListener { cancelAction() }
+
+
+        }
+/**/
+
+
+
 
         viewModel.imageUri.observe(viewLifecycleOwner) { image ->
             binding.imageViewPost.setImageURI(image)
-            //binding.shareButton.isEnabled = image != null
             binding.imageViewPost.visibility = if (image != null) View.VISIBLE else View.GONE
         }
 
-        viewModel.description.observe(viewLifecycleOwner, Observer { text ->
+        viewModel.description.observe(viewLifecycleOwner) { text ->
             binding.textInputDescription.setText(text)
-        })
+        }
     }
 
     private val getPhotoFromGallery =
@@ -179,16 +206,24 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
     private fun shareAction() {
 
         Log.d(TAG, "condivido il post...")
-        viewModel.setDescription(binding.textInputDescription.text.toString())
-        if (viewModel.checkPost()) {
-            viewModel.insert()
-            findNavController().navigate(R.id.action_move_to_home)
-        } else
-            Toast.makeText(
-                requireContext(),
-                "Devi inserire una foto per pubblicare",
-                Toast.LENGTH_LONG
-            ).show()
+        Log.d(
+            TAG,
+            binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text.toString()
+        )
+        viewModel.apply {
+            setDescription(binding.textInputDescription.text.toString())
+            setChildName(binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text as String?)
+            if (checkPost()) {
+                insert()
+                findNavController().navigate(R.id.action_move_to_home)
+            } else
+                Toast.makeText(
+                    requireContext(),
+                    "Devi inserire una foto per pubblicare",
+                    Toast.LENGTH_LONG
+                ).show()
+
+        }
 
     }
 

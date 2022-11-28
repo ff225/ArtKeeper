@@ -44,6 +44,12 @@ class PostAdapter : ListAdapter<Post, PostAdapter.PostAdatperViewHolder>(DiffCal
             //binding.photoItem.setImageURI()
             binding.nickNameItem.text = post.nickName
             binding.likeItem.text = post.nLike.toString()
+            binding.childNameItem.apply {
+                if (post.sketchedBy == null)
+                    visibility = View.GONE
+                else
+                    text = resources.getString(R.string.sketched_by, post.sketchedBy)
+            }
             binding.descriptionItem.apply {
                 if (post.description == null)
                     visibility = View.GONE
