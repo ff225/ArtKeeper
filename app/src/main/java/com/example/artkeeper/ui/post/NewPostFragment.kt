@@ -72,6 +72,8 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             Log.d(TAG, viewModel.user.value?.nameChild?.size.toString())
 
             if (user.nameChild?.size != 0 && binding.radioGroup.isEmpty()) {
+                binding.textviewAddChild.visibility = View.VISIBLE
+                binding.radioGroup.visibility = View.VISIBLE
                 for (item in user.nameChild!!) {
                     val radioButton = RadioButton(requireContext())
                     radioButton.apply {
@@ -79,16 +81,18 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                             ViewGroup.LayoutParams.WRAP_CONTENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT
                         )
-                        id = item.indexOf(item)
+                        id = user.nameChild.indexOf(item)
                         text = item
-                        //isChecked = true
                     }
                     binding.radioGroup.addView(radioButton)
                 }
+            } else {
+                binding.textviewAddChild.visibility = View.GONE
+                binding.radioGroup.visibility = View.GONE
             }
 
-
         }
+
         binding.apply {
             pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
             pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
@@ -167,13 +171,20 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                     dialog.cancel()
                 }
                 .setPositiveButton(R.string.yes) { dialog, _ ->
-                    binding.imageViewPost.visibility = View.GONE
-                    binding.textInputDescription.isFocusable = false
-                    binding.textInputDescription.isFocusableInTouchMode = true
+                    findNavController().navigate(R.id.action_move_to_home)
+                    binding.apply {
+                        imageViewPost.visibility = View.GONE
+                        textInputDescription.isFocusable = false
+                        textInputDescription.isFocusableInTouchMode = true
+                        radioGroup.clearCheck()
+                    }
                     viewModel.reset()
                     dialog.dismiss()
                 }.show()
-        findNavController().navigate(R.id.action_move_to_home)
+        else
+            findNavController().navigate(R.id.action_move_to_home)
+
+
     }
 
     private fun fromUriToBitmap(uri: Uri) =
@@ -205,6 +216,10 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         Log.d(
             TAG,
             binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text.toString()
+        )
+        Log.d(
+            TAG,
+            (binding.radioGroup.checkedRadioButtonId).toString()
         )
         viewModel.apply {
             setDescription(binding.textInputDescription.text.toString())
