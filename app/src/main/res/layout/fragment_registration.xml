@@ -7,20 +7,16 @@
     android:layout_margin="3dp"
     tools:context=".ui.login.RegistrationFragment">
 
-    <!-- TODO
-            - numero figli
-            - nome figli[numero figli]
-    -->
-
     <LinearLayout
         android:id="@+id/ll_registration_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/confirm_button"
-        android:orientation="vertical">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/registration_name_textInput"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -34,6 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/registration_lastname_textInput"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -47,6 +44,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/registration_nickname_textInput"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -66,10 +64,10 @@
         android:id="@+id/confirm_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ll_registration_info"
         android:layout_margin="10dp"
         android:layout_weight="1"
-        android:text="@string/confirm" />
+        android:text="@string/confirm"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ll_registration_info" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
