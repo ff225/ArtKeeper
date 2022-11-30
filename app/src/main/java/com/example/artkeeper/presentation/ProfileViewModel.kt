@@ -16,80 +16,62 @@ class ProfileViewModel(
 ) :
     ViewModel() {
 
-    private val uid = FirebaseAuth.getInstance().currentUser?.uid
-    val user: LiveData<User> = userRepo.getUser(uid!!).asLiveData()
-    val numPost: LiveData<Int> = postRepo.getNumPost(uid!!).asLiveData()
-    val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(uid!!).asLiveData()
     private lateinit var _name: String
     private lateinit var _lastName: String
     private lateinit var _nickName: String
-    private var _nChild: Int = 0
-    private var _nameChild: MutableList<String>? = null
+    private lateinit var _nameChild: MutableList<String>
+    private var _nChild: Int = -1
+    private val uid = FirebaseAuth.getInstance().currentUser?.uid
+    private val _user: MutableLiveData<User> =
+        userRepo.getUser(uid!!).asLiveData() as MutableLiveData<User>
+
+    //val user: LiveData<User> = userRepo.getUser(uid!!).asLiveData()
+    val user: LiveData<User> = _user
+    val numPost: LiveData<Int> = postRepo.getNumPost(uid!!).asLiveData()
+    val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(uid!!).asLiveData()
 
     init {
         reset()
-        Log.d("ProfileViewModel", "${_nChild}, ${_nameChild?.size} ")
+        Log.d("ProfileViewModel", "${_nChild}, ${_nameChild.size} ")
     }
 
     fun checkUser(uid: String): Boolean {
         return userRepo.checkUser(uid)
     }
 
-    fun setChild(name: String) {
-        reset()
-        _nChild += 1
-        _nameChild?.add(name)
-        Log.d("ProfileViewModel", "${_nameChild?.size}")
+    fun addChild(name: String) {
+        //reset()
+        _nameChild = _user.value?.nameChild as MutableList<String>
+        _nameChild.add(name)
+        _nChild = _nameChild.size
+        Log.d("ProfileViewModel", "${_nameChild.size}")
+        storeChild()
     }
 
-    fun storeChild() {
+    private fun storeChild() {
         viewModelScope.launch(Dispatchers.IO) {
-            userRepo.addChild(uid!!, _nameChild?.size!!, _nameChild!!)
+            userRepo.addChild(uid!!, _nChild, _nameChild)
         }
     }
 
-    /*
-    fun updateUser() {
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepo.updateUser(user)
-        }
-    }
-    */
-    /*
-    fun getUserRepo(uid: String): LiveData<User> {
-        return userRepo.getUser(uid).asLiveData()
-    }
-
-
-    suspend fun getUserRepo(uid: String) {
-        _user.value = userRepo.getUser(uid)
-    }*/
-    /*
-            fun getUserPost(): LiveData<List<Post>> {
-                return postRepo.getAllUserPost(_user.value!!.uid).asLiveData()
-            }
-
-
-            fun getNumPostUser(): LiveData<Int> {
-                return postRepo.getNumPost(_user.value!!.uid).asLiveData()
-            }
-
-
-         */
     fun setName(name: String) {
-        _name = name
+        _name = name.trim()
     }
 
-    fun setLastName(LastName: String) {
-        _lastName = LastName
+    fun setLastName(lastName: String) {
+        _lastName = lastName.trim()
     }
 
     fun setNickName(nick: String) {
-        _nickName = nick
+        _nickName = nick.trim()
     }
 
     fun checkUserInfo() =
-        !(_name == "" || _lastName == "" || _nickName == "")
+        !(_name.isBlank() || _lastName.isBlank() || _nickName.isBlank())
+
+
+    private fun getNameChild() = _user.value?.nameChild ?: listOf()
+    private fun getNChild() = _user.value?.nChild ?: 0
 
     private fun createUser(uid: String): User {
         return User(
@@ -108,6 +90,7 @@ class ProfileViewModel(
         }
     }
 
+    //TODO: Rimuovere uid
     fun insertUser(uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
             userRepo.insertUser(createUser(uid))
@@ -118,12 +101,13 @@ class ProfileViewModel(
         _name = ""
         _lastName = ""
         _nickName = ""
-        _nameChild = user.value?.nameChild?.toMutableList() ?: mutableListOf()
-        _nChild = user.value?.nChild ?: 0
+        _nameChild = getNameChild().toMutableList()
+        _nChild = getNChild()
         Log.d("ProfileViewModel", "in reset: ${user.value?.nChild}")
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 class ProfileViewModelFactory(
     private val userRepo: UserRepository,
     private val postRepo: PostRepository
