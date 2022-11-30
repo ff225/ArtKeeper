@@ -64,8 +64,7 @@ class SettingsFragment : Fragment() {
                             Toast.LENGTH_LONG
                         ).show()
                     } else {
-                        viewModel.setChild(text.text.toString())
-                        viewModel.storeChild()
+                        viewModel.addChild(text.text.toString())
                         dialog.dismiss()
                     }
                 }.show()
