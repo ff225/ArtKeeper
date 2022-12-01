@@ -69,12 +69,14 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
         viewModel.user.observe(viewLifecycleOwner) { user ->
             Log.d(TAG, user.nickName)
-            Log.d(TAG, viewModel.user.value?.nameChild?.size.toString())
 
-            if (user.nameChild?.size != 0 && binding.radioGroup.isEmpty()) {
+            Log.d(TAG, user.nameChild!!.isNotEmpty().toString())
+
+            binding.radioGroup.removeAllViews()
+            if (binding.radioGroup.isEmpty() && user.nameChild.isNotEmpty()) {
                 binding.textviewAddChild.visibility = View.VISIBLE
                 binding.radioGroup.visibility = View.VISIBLE
-                for (item in user.nameChild!!) {
+                for (item in user.nameChild) {
                     val radioButton = RadioButton(requireContext())
                     radioButton.apply {
                         layoutParams = LinearLayout.LayoutParams(
