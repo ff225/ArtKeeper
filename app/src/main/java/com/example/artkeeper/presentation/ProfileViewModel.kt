@@ -97,6 +97,12 @@ class ProfileViewModel(
         }
     }
 
+    fun deletePost(post: Post) {
+        viewModelScope.launch(Dispatchers.IO) {
+            postRepo.delete(post)
+        }
+    }
+
     private fun reset() {
         _name = ""
         _lastName = ""
