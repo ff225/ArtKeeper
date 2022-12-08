@@ -1,6 +1,5 @@
 package com.example.artkeeper.ui.post
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -117,8 +116,10 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
     private val getPhotoFromGallery =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri.let {
-                if (it != null)
+                if (it != null) {
+                    Log.d(TAG, it.path.toString())
                     viewModel.setImageUri(saveImageToInternalStorage(it))
+                }
             }
         }
 
@@ -153,14 +154,15 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
     }
 
     private fun getTmpFileUri(): Uri {
-        val tmpFile = File.createTempFile("tmp_image_file", ".jpg").apply {
-            createNewFile()
-            deleteOnExit()
-        }
+        val tmpFile =
+            File.createTempFile("tmp_image_file", ".jpg", requireContext().cacheDir).apply {
+                createNewFile()
+                deleteOnExit()
+            }
 
         return FileProvider.getUriForFile(
             requireContext(),
-            "${BuildConfig.APPLICATION_ID}.provider",
+            "${BuildConfig.APPLICATION_ID}.file_provider",
             tmpFile
         )
     }
@@ -198,9 +200,10 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         )
 
     private fun saveImageToInternalStorage(imagePath: Uri): Uri {
-        var file = requireContext().getDir(getString(R.string.folder_image), Context.MODE_PRIVATE)
-        file = File(file, "${UUID.randomUUID()}.jpg")
+
+        val file = File(requireContext().filesDir, "${UUID.randomUUID()}.jpg")
         val bitmap = fromUriToBitmap(imagePath)
+        Log.d(TAG, file.path)
         try {
             val stream: OutputStream = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
@@ -232,7 +235,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             } else
                 Toast.makeText(
                     requireContext(),
-                    "Devi inserire una foto per pubblicare",
+                    "È necessario inserire una foto per pubblicare",
                     Toast.LENGTH_LONG
                 ).show()
 
