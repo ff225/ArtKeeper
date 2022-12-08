@@ -1,5 +1,6 @@
 package com.example.artkeeper.ui
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -7,12 +8,15 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.app.ShareCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.get
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.example.artkeeper.BuildConfig
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
 import com.example.artkeeper.data.model.Post
@@ -22,6 +26,7 @@ import com.example.artkeeper.presentation.MainViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
+import java.io.File
 
 class MainFragment : Fragment() {
     companion object {
@@ -65,6 +70,7 @@ class MainFragment : Fragment() {
             }
 
         })
+
         recyclerView.adapter = postAdapter
 
         viewModel.allPost.observe(viewLifecycleOwner) { post ->
@@ -87,8 +93,32 @@ class MainFragment : Fragment() {
             override fun onMenuItemClick(item: MenuItem?): Boolean {
                 when (item?.itemId) {
                     R.id.share_post -> {
-                        Log.d(TAG, post.id.toString())
 
+                        Log.d(TAG, post.imagePath.toString())
+                        val path = try {
+                            FileProvider.getUriForFile(
+                                requireContext(),
+                                "${BuildConfig.APPLICATION_ID}.file_provider",
+                                File(
+                                    post.imagePath.path!!
+                                )
+                            )
+                        } catch (e: SecurityException) {
+                            Log.d(TAG, e.toString())
+                        }
+
+                        val shareIntent =
+                            ShareCompat.IntentBuilder(requireActivity()).apply {
+                                setType("image/jpg")
+                                setText(post.description.toString())
+                                post.sketchedBy?.let {
+                                    setText("Disegnato da: $it \n${post.description.toString()}")
+                                }
+                                addStream(path as Uri)
+
+                            }.createChooserIntent()
+
+                        startActivity(shareIntent)
                         return true
                     }
                 }
