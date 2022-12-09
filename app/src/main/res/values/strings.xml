@@ -9,6 +9,7 @@
     <string name="change_img_profile">Cambia immagine del profilo</string>
     <string name="add_son">Aggiungi figlio</string>
     <string name="logout">Logout</string>
+    <string name="sketched_by">Disegnato da: %s</string>
     <string name="description">Descrizione</string>
     <string name="pick_from_gallery">Galleria</string>
     <string name="pick_from_camera">Fotocamera</string>

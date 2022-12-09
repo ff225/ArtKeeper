@@ -69,9 +69,9 @@ class ProfileViewModel(
     fun checkUserInfo() =
         !(_name.isBlank() || _lastName.isBlank() || _nickName.isBlank())
 
-
     private fun getNameChild() = _user.value?.nameChild ?: listOf()
     private fun getNChild() = _user.value?.nChild ?: 0
+
 
     private fun createUser(uid: String): User {
         return User(
@@ -94,6 +94,12 @@ class ProfileViewModel(
     fun insertUser(uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
             userRepo.insertUser(createUser(uid))
+        }
+    }
+
+    fun deletePost(post: Post) {
+        viewModelScope.launch(Dispatchers.IO) {
+            postRepo.delete(post)
         }
     }
 
