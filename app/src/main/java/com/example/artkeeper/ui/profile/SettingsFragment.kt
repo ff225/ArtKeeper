@@ -1,6 +1,7 @@
 package com.example.artkeeper.ui.profile
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -47,27 +48,31 @@ class SettingsFragment : Fragment() {
         }
 
         binding.btnAddSon.setOnClickListener {
-            val inflater = requireActivity().layoutInflater
-            val viewDialog = inflater.inflate(R.layout.dialog_addson, null)
+            showDialogAddChild()
+        }
 
-            MaterialAlertDialogBuilder(requireContext()).setTitle("Nome figlio")
-                .setView(viewDialog)
-                .setNegativeButton(R.string.no) { dialog, _ ->
-                    dialog.cancel()
-                }
-                .setPositiveButton(R.string.yes) { dialog, _ ->
-                    val text = viewDialog.findViewById<EditText>(R.id.text_input_name)
-                    if (text.text.toString() == "") {
-                        Toast.makeText(
-                            requireContext(),
-                            "Devi inserire un nome valido...",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        viewModel.addChild(text.text.toString())
-                        dialog.dismiss()
-                    }
-                }.show()
+        binding.btnRmvSon.setOnClickListener {
+            /**
+             * radiogroup con i nomi dei figli
+             * in viewModel utilizzare quello che è stato fatto per aggiungere
+             */
+            if (viewModel.user.value?.nChild != 0)
+                showDialogRemoveChild()
+            else
+                Toast.makeText(
+                    requireContext(),
+                    "Nessun figlio da cancellare...",
+                    Toast.LENGTH_LONG
+                ).show()
+        }
+        binding.btnDeleteAccount.setOnClickListener {
+            /**
+             *  dialog: sei sicuro di voler cancellare l'account?
+             *  si -> procedi con l'eliminazione (creare in viewModel il necessario)
+             *  no -> chiudi il dialog
+             */
+
+            showDeleteAccount()
         }
         binding.btnLogout.setOnClickListener {
             AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
@@ -77,4 +82,55 @@ class SettingsFragment : Fragment() {
 
         }
     }
+
+    private fun showDialogAddChild() {
+        val inflater = requireActivity().layoutInflater
+        val viewDialog = inflater.inflate(R.layout.dialog_addson, null)
+
+        MaterialAlertDialogBuilder(requireContext()).setTitle("Nome figlio")
+            .setView(viewDialog)
+            .setNegativeButton(R.string.no) { dialog, _ ->
+                dialog.cancel()
+            }
+            .setPositiveButton(R.string.yes) { dialog, _ ->
+                val text = viewDialog.findViewById<EditText>(R.id.text_input_name)
+                if (text.text.toString() == "") {
+                    Toast.makeText(
+                        requireContext(),
+                        "Devi inserire un nome valido...",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    viewModel.addChild(text.text.toString())
+                    dialog.dismiss()
+                }
+            }.show()
+    }
+
+    private fun showDialogRemoveChild() {
+        val childName = viewModel.user.value?.nameChild?.toTypedArray()
+        Log.d("SettingsFragment", childName?.size.toString())
+        lateinit var select: String
+        var index = -1
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Chi vuoi cancellare?")
+            .setSingleChoiceItems(childName, index) { _, which ->
+                index = which
+                select = childName?.get(which).toString()
+            }
+            .setPositiveButton("Cancella") { _, _ ->
+                Toast.makeText(requireContext(), "Selected $select", Toast.LENGTH_LONG).show()
+                viewModel.removeChild(index)
+            }
+            .setNegativeButton("Annulla") { dialog, _ ->
+                dialog.cancel()
+            }
+            .show()
+    }
+
+    private fun showDeleteAccount() {
+        
+        Toast.makeText(requireContext(), "Vuoi cancellare l'account?", Toast.LENGTH_LONG).show()
+    }
+
 }
