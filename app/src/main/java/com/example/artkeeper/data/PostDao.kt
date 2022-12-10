@@ -16,13 +16,16 @@ interface PostDao {
     @Delete
     suspend fun delete(post: Post)
 
+    @Query("DELETE FROM post where uid_user =:uid")
+    suspend fun deleteAll(uid: String)
+
     @Query("SELECT * FROM post WHERE id = :id")
     fun getPost(id: Int): Flow<Post>
 
     @Query("SELECT * FROM post ORDER BY post_timestamp DESC")
     fun getPosts(): Flow<List<Post>>
 
-    // modificare con uid
+
     @Query("SELECT * FROM post WHERE uid_user = :uid ORDER by post_timestamp DESC")
     fun getUserPosts(uid: String): Flow<List<Post>>
 

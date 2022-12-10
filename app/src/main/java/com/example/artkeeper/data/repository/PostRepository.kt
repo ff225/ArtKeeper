@@ -8,6 +8,7 @@ class PostRepository(private val postLocalDataSource: PostLocalDataSource) {
 
     suspend fun insert(post: Post) = postLocalDataSource.insert(post)
     suspend fun delete(post:Post) = postLocalDataSource.delete(post)
+    suspend fun deleteAll(uid:String) = postLocalDataSource.deleteAll(uid)
     fun getAllPost(): Flow<List<Post>> = postLocalDataSource.getAllPost()
 
     fun getAllUserPost(uid: String): Flow<List<Post>> = postLocalDataSource.getAllUserPost(uid)
