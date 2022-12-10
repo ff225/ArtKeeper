@@ -48,6 +48,13 @@ class ProfileViewModel(
         storeChild()
     }
 
+    fun removeChild(id: Int) {
+        _nameChild = _user.value?.nameChild as MutableList<String>
+        _nameChild.removeAt(id)
+        _nChild = _nameChild.size
+        storeChild()
+    }
+
     private fun storeChild() {
         viewModelScope.launch(Dispatchers.IO) {
             userRepo.addChild(uid!!, _nChild, _nameChild)
@@ -101,6 +108,14 @@ class ProfileViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             postRepo.delete(post)
         }
+    }
+
+    fun deleteAccount(): Boolean {
+        return viewModelScope.launch(Dispatchers.IO) {
+            postRepo.deleteAll(uid!!)
+            userRepo.deleteUser(user.value!!)
+            FirebaseAuth.getInstance().currentUser?.delete()
+        }.isCompleted
     }
 
     private fun reset() {
