@@ -53,7 +53,7 @@ class MainFragment : Fragment() {
         Log.d(TAG, "onCreateView")
         Log.d(TAG, "${FirebaseAuth.getInstance().currentUser}")
         if (FirebaseAuth.getInstance().currentUser == null) {
-            findNavController().navigate(R.id.login)
+            findNavController().navigate(R.id.profile)
         }
         activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = false
         _binding = FragmentMainBinding.inflate(inflater, container, false)
