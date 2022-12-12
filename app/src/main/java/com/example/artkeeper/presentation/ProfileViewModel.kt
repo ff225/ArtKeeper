@@ -6,9 +6,11 @@ import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
+import com.example.artkeeper.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class ProfileViewModel(
     private val userRepo: UserRepository,
@@ -110,12 +112,17 @@ class ProfileViewModel(
         }
     }
 
-    fun deleteAccount(): Boolean {
-        return viewModelScope.launch(Dispatchers.IO) {
+    fun deleteAccount() = liveData(Dispatchers.IO) {
+        emit(Resource.Loading())
+        try {
+            FirebaseAuth.getInstance().currentUser?.delete()!!.await()
             postRepo.deleteAll(uid!!)
             userRepo.deleteUser(user.value!!)
-            FirebaseAuth.getInstance().currentUser?.delete()
-        }.isCompleted
+            emit(Resource.Success("Operazione completata con successo."))
+        } catch (e: Exception) {
+            Log.d("ProfileViewModel", e.message.toString())
+            emit(Resource.Failure(e))
+        }
     }
 
     private fun reset() {

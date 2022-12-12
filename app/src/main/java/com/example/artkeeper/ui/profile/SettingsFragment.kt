@@ -9,12 +9,14 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentSettingsBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -129,8 +131,36 @@ class SettingsFragment : Fragment() {
     }
 
     private fun showDeleteAccount() {
-        
-        Toast.makeText(requireContext(), "Vuoi cancellare l'account?", Toast.LENGTH_LONG).show()
+        viewModel.deleteAccount().observe(viewLifecycleOwner, Observer { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Vuoi cancellare l'account?",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                is Resource.Success -> {
+                    Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
+                        .show()
+                    findNavController().navigate(R.id.action_logout_move_to_home)
+                    requireActivity().viewModelStore.clear()
+                }
+                is Resource.Failure -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Effettua il login per completare questa azione",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                }
+            }
+        })
+    }
+
+    override fun onDestroy() {
+        _binding = null
+        super.onDestroy()
     }
 
 }
