@@ -29,7 +29,13 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<BottomNavigationView>(R.id.bottom_nav).setupWithNavController(navController)
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.mainFragment, R.id.newPost, R.id.profileFragment, R.id.loginFragment)
+            setOf(
+                R.id.mainFragment,
+                R.id.newPost,
+                R.id.profileFragment,
+                R.id.loginFragment,
+                R.id.registrationFragment
+            )
         )
         setupActionBarWithNavController(
             navController, appBarConfiguration
