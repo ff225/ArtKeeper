@@ -38,12 +38,14 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        binding.apply {
-            textInputName.setText(viewModel.user.value?.firstName)
-            textInputLastname.setText(viewModel.user.value?.lastName)
-            textInputNickname.setText(viewModel.user.value?.nickName)
-        }
+        viewModel.user.observe(viewLifecycleOwner) {
+            binding.apply {
+                textInputName.setText(it.firstName)
+                textInputLastname.setText(it.lastName)
+                textInputNickname.setText(it.nickName)
+            }
 
+        }
         binding.confirmButton.setOnClickListener {
             viewModel.apply {
                 setName(binding.textInputName.text.toString())
