@@ -9,8 +9,8 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.view.get
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
@@ -31,7 +31,7 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: ProfileViewModel by activityViewModels {
+    private val viewModel: ProfileViewModel by navGraphViewModels(R.id.profile) {
         ProfileViewModelFactory(
             (activity?.application as ArtKeeper).userRepository,
             (activity?.application as ArtKeeper).postRepository
