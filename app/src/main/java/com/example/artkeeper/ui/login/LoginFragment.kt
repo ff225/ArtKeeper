@@ -9,8 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentLoginBinding
 import com.example.artkeeper.presentation.ProfileViewModel
@@ -30,7 +30,7 @@ class LoginFragment : Fragment() {
         const val TAG = "LoginFragment"
     }
 
-    private val viewModel by activityViewModels<ProfileViewModel> {
+    private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (activity?.application as ArtKeeper).userRepository,
             (activity?.application as ArtKeeper).postRepository
@@ -48,7 +48,10 @@ class LoginFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
+        if (FirebaseAuth.getInstance().currentUser != null)
+            findNavController().navigate(R.id.action_loginFragment_to_profileFragment)
+        else
+            activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
 
     }
 
@@ -63,7 +66,6 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         binding.loginButton.setOnClickListener {
             createSignInIntent()
         }
@@ -124,5 +126,10 @@ class LoginFragment : Fragment() {
             .build()
 
         signInLauncher.launch(signInIntent)
+    }
+
+    override fun onDestroy() {
+        _binding = null
+        super.onDestroy()
     }
 }
