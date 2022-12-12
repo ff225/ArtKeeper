@@ -112,6 +112,17 @@ class ProfileViewModel(
         }
     }
 
+    fun deleteRegistration() = liveData(Dispatchers.IO) {
+        emit(Resource.Loading())
+        try {
+            FirebaseAuth.getInstance().currentUser?.delete()!!.await()
+            reset()
+            emit(Resource.Success("Fatto"))
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
     fun deleteAccount() = liveData(Dispatchers.IO) {
         emit(Resource.Loading())
         try {
