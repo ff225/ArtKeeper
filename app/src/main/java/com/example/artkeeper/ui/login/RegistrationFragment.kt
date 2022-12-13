@@ -36,7 +36,7 @@ class RegistrationFragment : Fragment() {
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
-
+    private var isRegistered = false
 
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
@@ -77,12 +77,19 @@ class RegistrationFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        if (FirebaseAuth.getInstance().currentUser == null)
+            findNavController().navigate(R.id.profile)
+        super.onResume()
+    }
+
     private fun userRegistration() {
         Log.d(TAG, "Confirm")
         if (!checkUserInfo()) {
             createUser()
             viewModel.insertUser(uid)
             findNavController().navigate(R.id.home)
+            isRegistered = true
             Log.d(TAG, "user registered")
         } else
             Log.d(TAG, "registration failed")
@@ -135,7 +142,6 @@ class RegistrationFragment : Fragment() {
                     Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
                         .show()
                     findNavController().navigate(R.id.profile)
-                    requireActivity().viewModelStore.clear()
                 }
                 is Resource.Failure -> {
                     Toast.makeText(
@@ -147,6 +153,12 @@ class RegistrationFragment : Fragment() {
                 }
             }
         })
+    }
+
+    override fun onPause() {
+        if (!isRegistered)
+            FirebaseAuth.getInstance().currentUser?.delete()
+        super.onPause()
     }
 
     override fun onDestroy() {
