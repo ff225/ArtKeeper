@@ -5,18 +5,27 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentRegistrationBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Resource
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
+/**
+ * TODO:
+ *  - controllare la presenza di nickname sul db;
+ *
+ *
+ */
 
 class RegistrationFragment : Fragment() {
     companion object {
@@ -29,17 +38,32 @@ class RegistrationFragment : Fragment() {
         get() = _binding!!
 
 
-    private val viewModel by activityViewModels<ProfileViewModel> {
+    private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
             (requireActivity().application as ArtKeeper).postRepository
         )
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            MaterialAlertDialogBuilder(requireContext()).setTitle("Annullare registrazione?")
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    deleteRegistration()
+                }
+                .setNegativeButton(R.string.no) { dialog, _ ->
+                    dialog.cancel()
+                }.show()
+        }
+
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         _binding = FragmentRegistrationBinding.inflate(inflater, container, false)
 
@@ -49,57 +73,80 @@ class RegistrationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         binding.confirmButton.setOnClickListener {
-            Log.d(TAG, "Confirm")
-
-            if (createUser()) {
-                runBlocking {
-                    val job = launch {
-                        viewModel.insertUser(uid)
-                    }
-                    job.join()
-                }
-                /*
-                runBlocking {
-                    val job1 = launch {
-                        viewModel.getUserRepo(uid)
-                    }
-                    job1.join()
-                    //viewModel.getUserPost()
-
-                    //viewModel.getNumPostUser()
-                }
-*/
-                val user = viewModel.user.value
-                println("Dentro RegistrationFragment ${user?.uid}")
-                /*
-                runBlocking {
-                    val job = launch {
-                        viewModel.getUserRepo(uid)
-                        viewModel.getUserPost()
-                        viewModel.getNumPostUser()
-                    }
-                    job.join()
-
-                }
-                 */
-                //viewModel.init()
-
-                findNavController().navigate(R.id.action_registrationFragment_to_mainFragment)
-                Log.d(TAG, "user registered")
-            } else
-                Log.d(TAG, "registration failed")
+            userRegistration()
         }
     }
 
-    private fun createUser(): Boolean {
-        //Log.d(TAG, "$name, $lastName, $nickName")
+    private fun userRegistration() {
+        Log.d(TAG, "Confirm")
+        if (!checkUserInfo()) {
+            createUser()
+            viewModel.insertUser(uid)
+            findNavController().navigate(R.id.home)
+            Log.d(TAG, "user registered")
+        } else
+            Log.d(TAG, "registration failed")
+    }
+
+    private fun checkUserInfo(): Boolean {
+
+        var hasError = false
+        if (binding.textInputName.text.toString().trim().isEmpty()) {
+            binding.textInputName.error = "Il campo è vuoto"
+            hasError = true
+        }
+        if (binding.textInputLastname.text.toString().trim().isEmpty()) {
+            binding.textInputLastname.error = "Il campo è vuoto"
+            hasError = true
+        }
+        if (binding.textInputNickname.text.toString().trim().isEmpty()) {
+            binding.textInputNickname.error = "Il campo è vuoto"
+            hasError = true
+        }
+        return hasError
+    }
+
+    private fun createUser() {
         viewModel.apply {
-            setName(binding.textInputName.text.toString())
-            setLastName(binding.textInputLastname.text.toString())
-            setNickName(binding.textInputNickname.text.toString())
+            setName(binding.textInputName.text.toString().trim())
+            setLastName(binding.textInputLastname.text.toString().trim())
+            setNickName(binding.textInputNickname.text.toString().trim())
 
         }
-        return viewModel.checkUserInfo()
+    }
+
+    private fun deleteRegistration() {
+        viewModel.deleteRegistration().observe(viewLifecycleOwner, Observer { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    binding.apply {
+                        textInputName.isEnabled = false
+                        textInputLastname.isEnabled = false
+                        textInputNickname.isEnabled = false
+                        confirmButton.isEnabled = false
+                    }
+                    Toast.makeText(
+                        requireContext(),
+                        "Vuoi cancellare l'account?",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                is Resource.Success -> {
+                    Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
+                        .show()
+                    findNavController().navigate(R.id.profile)
+                    requireActivity().viewModelStore.clear()
+                }
+                is Resource.Failure -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Effettua il login per completare questa azione",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
