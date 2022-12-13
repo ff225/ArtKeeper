@@ -26,8 +26,6 @@ class ProfileViewModel(
     private val uid = FirebaseAuth.getInstance().currentUser?.uid
     private val _user: MutableLiveData<User> =
         userRepo.getUser(uid!!).asLiveData() as MutableLiveData<User>
-
-    //val user: LiveData<User> = userRepo.getUser(uid!!).asLiveData()
     val user: LiveData<User> = _user
     val numPost: LiveData<Int> = postRepo.getNumPost(uid!!).asLiveData()
     val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(uid!!).asLiveData()
