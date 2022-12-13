@@ -22,7 +22,7 @@ import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 class LoginFragment : Fragment() {
@@ -53,6 +53,7 @@ class LoginFragment : Fragment() {
         else
             activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
 
+
     }
 
     override fun onCreateView(
@@ -66,6 +67,7 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         binding.loginButton.setOnClickListener {
             createSignInIntent()
         }
@@ -86,17 +88,10 @@ class LoginFragment : Fragment() {
             //  - Se l'utente ha inserito le informazioni base
             //  - -> MainFragment
             //  - else -> RegistrationFragment
-
-            var userFrom = false
-            runBlocking {
-                val job = launch(Dispatchers.IO) { userFrom = viewModel.checkUser(user.uid) }
-                job.join()
-            }
-            Log.d(TAG, userFrom.toString())
-            if (!userFrom)
-                findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
-            else
+            if (userIsRegistered(user.uid))
                 findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            else
+                findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
 
 
             Log.d(TAG, "nome: ${user.displayName}")
@@ -126,6 +121,16 @@ class LoginFragment : Fragment() {
             .build()
 
         signInLauncher.launch(signInIntent)
+    }
+
+    private fun userIsRegistered(uid: String?): Boolean {
+        var userFrom = false
+        runBlocking {
+            val job = async(Dispatchers.IO) { userFrom = viewModel.checkUser(uid ?: "") }
+            job.await()
+            Log.d("TAG- userIsRegistered", userFrom.toString())
+        }
+        return userFrom
     }
 
     override fun onDestroy() {
