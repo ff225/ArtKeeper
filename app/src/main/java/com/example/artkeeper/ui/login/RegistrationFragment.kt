@@ -23,8 +23,6 @@ import com.google.firebase.auth.FirebaseAuth
 /**
  * TODO:
  *  - controllare la presenza di nickname sul db;
- *
- *
  */
 
 class RegistrationFragment : Fragment() {
@@ -71,6 +69,13 @@ class RegistrationFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.textInputNickname.onFocusChangeListener =
+            View.OnFocusChangeListener { _, hasFocus ->
+                if (hasFocus)
+                    binding.textInputNickname.hint = "Eventuali spazi bianchi verranno rimossi"
+                else
+                    binding.textInputNickname.hint = ""
+            }
 
         binding.confirmButton.setOnClickListener {
             userRegistration()
@@ -117,7 +122,9 @@ class RegistrationFragment : Fragment() {
         viewModel.apply {
             setName(binding.textInputName.text.toString().trim())
             setLastName(binding.textInputLastname.text.toString().trim())
-            setNickName(binding.textInputNickname.text.toString().trim())
+            setNickName(
+                binding.textInputNickname.text.toString().lowercase().trim()
+                    .filterNot { it.isWhitespace() })
 
         }
     }

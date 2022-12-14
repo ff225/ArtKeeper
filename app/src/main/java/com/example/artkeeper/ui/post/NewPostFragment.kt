@@ -102,7 +102,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
 
         }
-/**/
+
         viewModel.imageUri.observe(viewLifecycleOwner) { image ->
             binding.imageViewPost.setImageURI(image)
             binding.imageViewPost.visibility = if (image != null) View.VISIBLE else View.GONE
@@ -227,7 +227,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             (binding.radioGroup.checkedRadioButtonId).toString()
         )
         viewModel.apply {
-            setDescription(binding.textInputDescription.text.toString())
+            setDescription(binding.textInputDescription.text.toString().trim())
             setChildName(binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text as String?)
             if (checkPost()) {
                 insert()

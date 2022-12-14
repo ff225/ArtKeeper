@@ -38,6 +38,14 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
+        binding.textInputNickname.onFocusChangeListener =
+            View.OnFocusChangeListener { _, hasFocus ->
+                if (hasFocus)
+                    binding.textInputNickname.hint = "Eventuali spazi bianchi verranno rimossi"
+                else
+                    binding.textInputNickname.hint = ""
+            }
+
         viewModel.user.observe(viewLifecycleOwner) {
             binding.apply {
                 textInputName.setText(it.firstName)
@@ -47,13 +55,15 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
 
         }
         binding.confirmButton.setOnClickListener {
-            viewModel.apply {
-                setName(binding.textInputName.text.toString())
-                setLastName(binding.textInputLastname.text.toString())
-                setNickName(binding.textInputNickname.text.toString())
-            }
+            if (!checkUserInfo()) {
+                viewModel.apply {
+                    setName(binding.textInputName.text.toString().trim())
+                    setLastName(binding.textInputLastname.text.toString().trim())
+                    setNickName(
+                        binding.textInputNickname.text.toString().lowercase().trim()
+                            .filterNot { it.isWhitespace() })
 
-            if (viewModel.checkUserInfo()) {
+                }
                 viewModel.updateInfoUser()
                 findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
             } else
@@ -63,5 +73,23 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
                     Toast.LENGTH_LONG
                 ).show()
         }
+    }
+
+    private fun checkUserInfo(): Boolean {
+
+        var hasError = false
+        if (binding.textInputName.text.toString().trim().isEmpty()) {
+            binding.textInputName.error = "Il campo è vuoto"
+            hasError = true
+        }
+        if (binding.textInputLastname.text.toString().trim().isEmpty()) {
+            binding.textInputLastname.error = "Il campo è vuoto"
+            hasError = true
+        }
+        if (binding.textInputNickname.text.toString().trim().isEmpty()) {
+            binding.textInputNickname.error = "Il campo è vuoto"
+            hasError = true
+        }
+        return hasError
     }
 }

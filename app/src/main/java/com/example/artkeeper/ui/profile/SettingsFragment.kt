@@ -97,15 +97,15 @@ class SettingsFragment : Fragment() {
                 dialog.cancel()
             }
             .setPositiveButton(R.string.confirm) { dialog, _ ->
-                val text = viewDialog.findViewById<EditText>(R.id.text_input_name)
-                if (text.text.toString() == "") {
+                val text = viewDialog.findViewById<EditText>(R.id.text_input_name).text.toString().trim()
+                if (text.isEmpty()) {
                     Toast.makeText(
                         requireContext(),
                         "Devi inserire un nome valido...",
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
-                    viewModel.addChild(text.text.toString())
+                    viewModel.addChild(text)
                     dialog.dismiss()
                 }
             }.show()
@@ -163,7 +163,7 @@ class SettingsFragment : Fragment() {
                     Toast.makeText(
                         requireContext(),
                         "Operazione in corso... verrai reindirizzato alla pagina di login.",
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
                 is Resource.Success -> {
