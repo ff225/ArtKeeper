@@ -28,6 +28,7 @@ import com.google.firebase.auth.FirebaseAuth
 class RegistrationFragment : Fragment() {
     companion object {
         const val TAG = "RegistrationFragment"
+        val regex = Regex("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*\$")
     }
 
     private val uid = FirebaseAuth.getInstance().currentUser!!.uid
@@ -103,12 +104,17 @@ class RegistrationFragment : Fragment() {
     private fun checkUserInfo(): Boolean {
 
         var hasError = false
-        if (binding.textInputName.text.toString().trim().isEmpty()) {
-            binding.textInputName.error = "Il campo è vuoto"
+        if (binding.textInputName.text.toString().trim()
+                .isEmpty() || !(binding.textInputName.text.toString()
+                .matches(regex))
+        ) {
+            binding.textInputName.error = "Nome non valido"
             hasError = true
         }
-        if (binding.textInputLastname.text.toString().trim().isEmpty()) {
-            binding.textInputLastname.error = "Il campo è vuoto"
+        if (binding.textInputLastname.text.toString().trim()
+                .isEmpty() || !(binding.textInputLastname.text.toString().matches(regex))
+        ) {
+            binding.textInputLastname.error = "Cognome non valido"
             hasError = true
         }
         if (binding.textInputNickname.text.toString().trim().isEmpty()) {

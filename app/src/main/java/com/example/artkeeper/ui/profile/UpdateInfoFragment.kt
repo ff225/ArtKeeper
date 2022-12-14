@@ -15,6 +15,11 @@ import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 
 class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
+    companion object {
+        const val TAG = "UpdateInfoFragment"
+        val regex = Regex("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*\$")
+    }
+
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
@@ -78,12 +83,18 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     private fun checkUserInfo(): Boolean {
 
         var hasError = false
-        if (binding.textInputName.text.toString().trim().isEmpty()) {
-            binding.textInputName.error = "Il campo è vuoto"
+        if (binding.textInputName.text.toString().trim()
+                .isEmpty() || !(binding.textInputName.text.toString()
+                .matches(regex))
+        ) {
+            binding.textInputName.error = "Nome non valido"
             hasError = true
         }
-        if (binding.textInputLastname.text.toString().trim().isEmpty()) {
-            binding.textInputLastname.error = "Il campo è vuoto"
+        if (binding.textInputLastname.text.toString().trim()
+                .isEmpty() || !(binding.textInputLastname.text.toString()
+                .matches(regex))
+        ) {
+            binding.textInputLastname.error = "Cognome non valido"
             hasError = true
         }
         if (binding.textInputNickname.text.toString().trim().isEmpty()) {
