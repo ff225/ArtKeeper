@@ -64,5 +64,12 @@
         android:id="@+id/registrationFragment"
         android:name="com.example.artkeeper.ui.login.RegistrationFragment"
         android:label="Registrati"
-        tools:layout="@layout/fragment_registration" />
+        tools:layout="@layout/fragment_registration">
+        <action
+            android:id="@+id/action_registrationFragment_to_home"
+            app:destination="@+id/home"
+            app:popUpTo="@id/profile"
+            app:popUpToInclusive="true"
+        />
+    </fragment>
 </navigation>
