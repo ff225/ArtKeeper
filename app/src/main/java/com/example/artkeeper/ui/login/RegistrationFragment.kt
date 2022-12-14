@@ -88,7 +88,7 @@ class RegistrationFragment : Fragment() {
         if (!checkUserInfo()) {
             createUser()
             viewModel.insertUser(uid)
-            findNavController().navigate(R.id.home)
+            findNavController().navigate(R.id.action_registrationFragment_to_home)
             isRegistered = true
             Log.d(TAG, "user registered")
         } else
