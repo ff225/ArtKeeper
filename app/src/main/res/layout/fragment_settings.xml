@@ -7,8 +7,8 @@
     tools:context=".ui.profile.SettingsFragment">
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_change_usn"
-        android:text="@string/change_usn"
+        android:id="@+id/btn_change_info"
+        android:text="@string/change_info"
         android:textAlignment="textStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -25,6 +25,23 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_add_son"
         android:text="@string/add_son"
+        android:textAlignment="textStart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        />
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_rmv_son"
+        android:text="@string/rmv_son"
+        android:textAlignment="textStart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_delete_account"
+        android:text="@string/delete_account"
         android:textAlignment="textStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

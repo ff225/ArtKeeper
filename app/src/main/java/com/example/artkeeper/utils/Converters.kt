@@ -1,11 +1,10 @@
 package com.example.artkeeper.utils
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.core.net.toUri
 import androidx.room.TypeConverter
-import java.io.ByteArrayOutputStream
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class Converters {
     @TypeConverter
@@ -16,6 +15,19 @@ class Converters {
     @TypeConverter
     fun fromStringToUri(imagePath: String): Uri {
         return imagePath.toUri()
+    }
+
+    @TypeConverter
+    fun fromListToString(nameChild: List<String>?): String? {
+        return Gson().toJson(nameChild)
+    }
+
+    @TypeConverter
+    fun fromStringToList(value: String?): List<String>? {
+        val listType = object :
+            TypeToken<List<String?>?>() {}.type
+        return Gson()
+            .fromJson<List<String>>(value, listType)
     }
 /*
     @TypeConverter

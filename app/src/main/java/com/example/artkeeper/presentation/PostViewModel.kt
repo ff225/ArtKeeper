@@ -19,6 +19,7 @@ class PostViewModel(private val repo: PostRepository, userRepo: UserRepository) 
     private var _imageUri: MutableLiveData<Uri?> = MutableLiveData(null)
     val imageUri: LiveData<Uri?>
         get() = _imageUri
+    private var _childName: MutableLiveData<String?> = MutableLiveData(null)
     private var _description: MutableLiveData<String?> = MutableLiveData(null)
     val description: LiveData<String?>
         get() = _description
@@ -28,12 +29,17 @@ class PostViewModel(private val repo: PostRepository, userRepo: UserRepository) 
     }
 
     fun setDescription(description: String) {
-        _description.value = description
+        _description.value = description.trim()
+    }
+
+    fun setChildName(name: String?) {
+        _childName.value = name
     }
 
     fun reset() {
         _imageUri.value = null
         _description.value = null
+        _childName.value = null
     }
 
     fun checkPost(): Boolean {
@@ -51,6 +57,7 @@ class PostViewModel(private val repo: PostRepository, userRepo: UserRepository) 
             user.value!!.nickName,
             _imageUri.value!!,
             0,
+            _childName.value,
             _description.value,
             true,
             getTimestamp()

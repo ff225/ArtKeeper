@@ -8,7 +8,7 @@
 
     <fragment
         android:id="@+id/newPost"
-        android:name="com.example.artkeeper.ui.post.NewPost"
+        android:name="com.example.artkeeper.ui.post.NewPostFragment"
         android:label="@string/add_post"
         tools:layout="@layout/fragment_new_post">
         <action

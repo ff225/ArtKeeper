@@ -8,7 +8,6 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.firebase.ui.auth.AuthUI
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
@@ -21,8 +20,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //TODO rimuovere
-        AuthUI.getInstance().signOut(this)
         setContentView(R.layout.activity_main)
 
         val navHostFragment =
@@ -32,7 +29,13 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<BottomNavigationView>(R.id.bottom_nav).setupWithNavController(navController)
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.mainFragment, R.id.newPost, R.id.profileFragment, R.id.loginFragment)
+            setOf(
+                R.id.mainFragment,
+                R.id.newPost,
+                R.id.profileFragment,
+                R.id.loginFragment,
+                R.id.registrationFragment
+            )
         )
         setupActionBarWithNavController(
             navController, appBarConfiguration
@@ -43,4 +46,5 @@ class MainActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
+
 }

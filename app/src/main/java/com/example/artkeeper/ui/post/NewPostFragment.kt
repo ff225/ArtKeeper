@@ -1,6 +1,5 @@
 package com.example.artkeeper.ui.post
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -9,12 +8,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.RadioButton
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.core.view.isEmpty
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.artkeeper.BuildConfig
@@ -31,7 +32,7 @@ import java.io.OutputStream
 import java.util.*
 
 
-class NewPost : Fragment(R.layout.fragment_new_post) {
+class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
     companion object {
         const val TAG = "NewPost"
@@ -59,7 +60,6 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
     ): View {
         // Inflate the layout for this fragment
         _binding = FragmentNewPostBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
@@ -68,28 +68,58 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
 
         viewModel.user.observe(viewLifecycleOwner) { user ->
             Log.d(TAG, user.nickName)
+
+            Log.d(TAG, user.nameChild!!.isNotEmpty().toString())
+
+            binding.radioGroup.removeAllViews()
+            if (binding.radioGroup.isEmpty() && user.nameChild.isNotEmpty()) {
+                binding.textviewAddChild.visibility = View.VISIBLE
+                binding.radioGroup.visibility = View.VISIBLE
+                for (item in user.nameChild) {
+                    val radioButton = RadioButton(requireContext())
+                    radioButton.apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+                        id = user.nameChild.indexOf(item)
+                        text = item
+                    }
+                    binding.radioGroup.addView(radioButton)
+                }
+            } else {
+                binding.textviewAddChild.visibility = View.GONE
+                binding.radioGroup.visibility = View.GONE
+            }
+
         }
-        binding.pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
-        binding.pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
-        binding.shareButton.setOnClickListener { shareAction() }
-        binding.cancelButton.setOnClickListener { cancelAction() }
+
+        binding.apply {
+            pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
+            pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
+            shareButton.setOnClickListener { shareAction() }
+            cancelButton.setOnClickListener { cancelAction() }
+
+
+        }
 
         viewModel.imageUri.observe(viewLifecycleOwner) { image ->
             binding.imageViewPost.setImageURI(image)
-            //binding.shareButton.isEnabled = image != null
             binding.imageViewPost.visibility = if (image != null) View.VISIBLE else View.GONE
         }
 
-        viewModel.description.observe(viewLifecycleOwner, Observer { text ->
+        viewModel.description.observe(viewLifecycleOwner) { text ->
             binding.textInputDescription.setText(text)
-        })
+        }
     }
 
     private val getPhotoFromGallery =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri.let {
-                if (it != null)
+                if (it != null) {
+                    Log.d(TAG, it.path.toString())
                     viewModel.setImageUri(saveImageToInternalStorage(it))
+                }
             }
         }
 
@@ -124,14 +154,15 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
     }
 
     private fun getTmpFileUri(): Uri {
-        val tmpFile = File.createTempFile("tmp_image_file", ".jpg").apply {
-            createNewFile()
-            deleteOnExit()
-        }
+        val tmpFile =
+            File.createTempFile("tmp_image_file", ".jpg", requireContext().cacheDir).apply {
+                createNewFile()
+                deleteOnExit()
+            }
 
         return FileProvider.getUriForFile(
             requireContext(),
-            "${BuildConfig.APPLICATION_ID}.provider",
+            "${BuildConfig.APPLICATION_ID}.file_provider",
             tmpFile
         )
     }
@@ -144,13 +175,20 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
                     dialog.cancel()
                 }
                 .setPositiveButton(R.string.yes) { dialog, _ ->
-                    binding.imageViewPost.visibility = View.GONE
-                    binding.textInputDescription.isFocusable = false
-                    binding.textInputDescription.isFocusableInTouchMode = true
+                    findNavController().navigate(R.id.action_move_to_home)
+                    binding.apply {
+                        imageViewPost.visibility = View.GONE
+                        textInputDescription.isFocusable = false
+                        textInputDescription.isFocusableInTouchMode = true
+                        radioGroup.clearCheck()
+                    }
                     viewModel.reset()
                     dialog.dismiss()
                 }.show()
-        findNavController().navigate(R.id.action_move_to_home)
+        else
+            findNavController().navigate(R.id.action_move_to_home)
+
+
     }
 
     private fun fromUriToBitmap(uri: Uri) =
@@ -162,9 +200,10 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
         )
 
     private fun saveImageToInternalStorage(imagePath: Uri): Uri {
-        var file = requireContext().getDir(getString(R.string.folder_image), Context.MODE_PRIVATE)
-        file = File(file, "${UUID.randomUUID()}.jpg")
+
+        val file = File(requireContext().filesDir, "${UUID.randomUUID()}.jpg")
         val bitmap = fromUriToBitmap(imagePath)
+        Log.d(TAG, file.path)
         try {
             val stream: OutputStream = FileOutputStream(file)
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
@@ -179,16 +218,28 @@ class NewPost : Fragment(R.layout.fragment_new_post) {
     private fun shareAction() {
 
         Log.d(TAG, "condivido il post...")
-        viewModel.setDescription(binding.textInputDescription.text.toString())
-        if (viewModel.checkPost()) {
-            viewModel.insert()
-            findNavController().navigate(R.id.action_move_to_home)
-        } else
-            Toast.makeText(
-                requireContext(),
-                "Devi inserire una foto per pubblicare",
-                Toast.LENGTH_LONG
-            ).show()
+        Log.d(
+            TAG,
+            binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text.toString()
+        )
+        Log.d(
+            TAG,
+            (binding.radioGroup.checkedRadioButtonId).toString()
+        )
+        viewModel.apply {
+            setDescription(binding.textInputDescription.text.toString().trim())
+            setChildName(binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text as String?)
+            if (checkPost()) {
+                insert()
+                findNavController().navigate(R.id.action_move_to_home)
+            } else
+                Toast.makeText(
+                    requireContext(),
+                    "È necessario inserire una foto per pubblicare",
+                    Toast.LENGTH_LONG
+                ).show()
+
+        }
 
     }
 

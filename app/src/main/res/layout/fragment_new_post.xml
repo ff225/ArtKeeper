@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="3dp"
-    tools:context=".ui.post.NewPost">
+    tools:context=".ui.post.NewPostFragment">
 
     <ImageView
         android:id="@+id/image_view_post"
@@ -34,7 +34,7 @@
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:text="@string/pick_from_gallery"
-            app:icon="@drawable/ic_baseline_insert_photo_24"/>
+            app:icon="@drawable/ic_baseline_insert_photo_24" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/pick_from_camera"
@@ -43,7 +43,7 @@
             android:layout_margin="10dp"
             android:layout_weight="1"
             android:text="@string/pick_from_camera"
-            app:icon="@drawable/ic_baseline_photo_camera_24"/>
+            app:icon="@drawable/ic_baseline_photo_camera_24" />
     </LinearLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -60,34 +60,57 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/textInputDescription"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/menu_son"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+    <TextView
+        android:id="@+id/textview_add_child"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/select_son"
+        app:layout_constraintBottom_toTopOf="@id/radio_group"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/post_description_textInput" />
+
+
+    <RadioGroup
+        android:id="@+id/radio_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:hint="@string/select_son"
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="5dp"
         app:layout_constraintBottom_toTopOf="@id/ll_delete_share"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/post_description_textInput">
-
-        <AutoCompleteTextView
+        app:layout_constraintTop_toBottomOf="@id/textview_add_child" />
+    <!--    <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/menu_son"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="none" />
+            android:layout_margin="10dp"
+            android:hint="@string/select_son"
+            app:layout_constraintBottom_toTopOf="@id/ll_delete_share"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/post_description_textInput">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <AutoCompleteTextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
 
+        </com.google.android.material.textfield.TextInputLayout>
+    -->
     <LinearLayout
         android:id="@+id/ll_delete_share"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/menu_son">
+        app:layout_constraintTop_toBottomOf="@id/radio_group">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/cancel_button"

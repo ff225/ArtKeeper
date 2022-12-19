@@ -9,8 +9,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentLoginBinding
 import com.example.artkeeper.presentation.ProfileViewModel
@@ -22,7 +22,7 @@ import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 
 class LoginFragment : Fragment() {
@@ -30,7 +30,7 @@ class LoginFragment : Fragment() {
         const val TAG = "LoginFragment"
     }
 
-    private val viewModel by activityViewModels<ProfileViewModel> {
+    private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (activity?.application as ArtKeeper).userRepository,
             (activity?.application as ArtKeeper).postRepository
@@ -48,7 +48,11 @@ class LoginFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
+        if (FirebaseAuth.getInstance().currentUser != null)
+            findNavController().navigate(R.id.action_loginFragment_to_profileFragment)
+        else
+            activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
+
 
     }
 
@@ -84,17 +88,10 @@ class LoginFragment : Fragment() {
             //  - Se l'utente ha inserito le informazioni base
             //  - -> MainFragment
             //  - else -> RegistrationFragment
-
-            var userFrom = false
-            runBlocking {
-                val job = launch(Dispatchers.IO) { userFrom = viewModel.checkUser(user.uid) }
-                job.join()
-            }
-            Log.d(TAG, userFrom.toString())
-            if (!userFrom)
-                findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
-            else
+            if (userIsRegistered(user.uid))
                 findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+            else
+                findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
 
 
             Log.d(TAG, "nome: ${user.displayName}")
@@ -124,5 +121,20 @@ class LoginFragment : Fragment() {
             .build()
 
         signInLauncher.launch(signInIntent)
+    }
+
+    private fun userIsRegistered(uid: String?): Boolean {
+        var userFrom = false
+        runBlocking {
+            val job = async(Dispatchers.IO) { userFrom = viewModel.checkUser(uid ?: "") }
+            job.await()
+            Log.d("TAG- userIsRegistered", userFrom.toString())
+        }
+        return userFrom
+    }
+
+    override fun onDestroy() {
+        _binding = null
+        super.onDestroy()
     }
 }

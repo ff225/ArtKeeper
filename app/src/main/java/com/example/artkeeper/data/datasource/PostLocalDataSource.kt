@@ -2,7 +2,6 @@ package com.example.artkeeper.data.datasource
 
 import com.example.artkeeper.data.PostDao
 import com.example.artkeeper.data.model.Post
-import com.example.artkeeper.utils.Resource
 import kotlinx.coroutines.flow.Flow
 
 
@@ -19,10 +18,11 @@ class PostLocalDataSource(private val postDao: PostDao) {
         postDao.delete(post)
     }
 
+    suspend fun deleteAll(uid: String) = postDao.deleteAll(uid)
+
     fun getNumPost(uid: String): Flow<Int> = postDao.getNumPost(uid)
 
     fun getAllUserPost(uid: String): Flow<List<Post>> = postDao.getUserPosts(uid)
-
     fun getAllPost(): Flow<List<Post>> = postDao.getPosts()
 
 }

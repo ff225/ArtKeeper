@@ -5,41 +5,64 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentRegistrationBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Resource
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
+/**
+ * TODO:
+ *  - controllare la presenza di nickname sul db;
+ */
 
 class RegistrationFragment : Fragment() {
     companion object {
         const val TAG = "RegistrationFragment"
+        val regex = Regex("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*\$")
     }
 
     private val uid = FirebaseAuth.getInstance().currentUser!!.uid
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
+    private var isRegistered = false
 
-
-    private val viewModel by activityViewModels<ProfileViewModel> {
+    private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
             (requireActivity().application as ArtKeeper).postRepository
         )
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            MaterialAlertDialogBuilder(requireContext()).setTitle("Annullare registrazione?")
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    deleteRegistration()
+                }
+                .setNegativeButton(R.string.no) { dialog, _ ->
+                    dialog.cancel()
+                }.show()
+        }
+
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         _binding = FragmentRegistrationBinding.inflate(inflater, container, false)
 
@@ -47,61 +70,108 @@ class RegistrationFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        binding.textInputNickname.onFocusChangeListener =
+            View.OnFocusChangeListener { _, hasFocus ->
+                if (hasFocus)
+                    binding.textInputNickname.hint = "Eventuali spazi bianchi verranno rimossi"
+                else
+                    binding.textInputNickname.hint = ""
+            }
 
         binding.confirmButton.setOnClickListener {
-            Log.d(TAG, "Confirm")
-
-
-            // TODO in create user inizializzare getuserpost e get numpost
-            // runblocking per registrare l'utente
-
-
-            if (createUser()) {
-                runBlocking {
-                    val job = launch {
-                        viewModel.insertUser(uid)
-                    }
-                    job.join()
-                }
-/*
-                runBlocking {
-                    val job1 = launch {
-                        viewModel.getUserRepo(uid)
-                    }
-                    job1.join()
-                    //viewModel.getUserPost()
-
-                    //viewModel.getNumPostUser()
-                }
-*/
-                val user = viewModel.user.value
-                println("Dentro RegistrationFragment ${user?.uid}")
-                /*
-                runBlocking {
-                    val job = launch {
-                        viewModel.getUserRepo(uid)
-                        viewModel.getUserPost()
-                        viewModel.getNumPostUser()
-                    }
-                    job.join()
-
-                }
-                 */
-                //viewModel.init()
-
-                findNavController().navigate(R.id.action_registrationFragment_to_mainFragment)
-                Log.d(TAG, "user registered")
-            } else
-                Log.d(TAG, "registration failed")
+            userRegistration()
         }
     }
 
-    private fun createUser(): Boolean {
-        //Log.d(TAG, "$name, $lastName, $nickName")
-        viewModel.setName(binding.textInputName.text.toString())
-        viewModel.setLastName(binding.textInputLastname.text.toString())
-        viewModel.setNickName(binding.textInputNickname.text.toString())
-        return viewModel.checkUserInfo()
+    override fun onResume() {
+        if (FirebaseAuth.getInstance().currentUser == null)
+            findNavController().navigate(R.id.profile)
+        super.onResume()
+    }
+
+    private fun userRegistration() {
+        Log.d(TAG, "Confirm")
+        if (!checkUserInfo()) {
+            createUser()
+            viewModel.insertUser(uid)
+            findNavController().navigate(R.id.action_registrationFragment_to_home)
+            isRegistered = true
+            Log.d(TAG, "user registered")
+        } else
+            Log.d(TAG, "registration failed")
+    }
+
+    private fun checkUserInfo(): Boolean {
+
+        var hasError = false
+        if (binding.textInputName.text.toString().trim()
+                .isEmpty() || !(binding.textInputName.text.toString()
+                .matches(regex))
+        ) {
+            binding.textInputName.error = "Nome non valido"
+            hasError = true
+        }
+        if (binding.textInputLastname.text.toString().trim()
+                .isEmpty() || !(binding.textInputLastname.text.toString().matches(regex))
+        ) {
+            binding.textInputLastname.error = "Cognome non valido"
+            hasError = true
+        }
+        if (binding.textInputNickname.text.toString().trim().isEmpty()) {
+            binding.textInputNickname.error = "Il campo è vuoto"
+            hasError = true
+        }
+        return hasError
+    }
+
+    private fun createUser() {
+        viewModel.apply {
+            setName(binding.textInputName.text.toString().trim())
+            setLastName(binding.textInputLastname.text.toString().trim())
+            setNickName(
+                binding.textInputNickname.text.toString().lowercase().trim()
+                    .filterNot { it.isWhitespace() })
+
+        }
+    }
+
+    private fun deleteRegistration() {
+        viewModel.deleteRegistration().observe(viewLifecycleOwner, Observer { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    binding.apply {
+                        textInputName.isEnabled = false
+                        textInputLastname.isEnabled = false
+                        textInputNickname.isEnabled = false
+                        confirmButton.isEnabled = false
+                    }
+                    Toast.makeText(
+                        requireContext(),
+                        "Vuoi cancellare l'account?",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                is Resource.Success -> {
+                    Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
+                        .show()
+                    findNavController().navigate(R.id.profile)
+                }
+                is Resource.Failure -> {
+                    Toast.makeText(
+                        requireContext(),
+                        "Effettua il login per completare questa azione",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                }
+            }
+        })
+    }
+
+    override fun onPause() {
+        if (!isRegistered)
+            FirebaseAuth.getInstance().currentUser?.delete()
+        super.onPause()
     }
 
     override fun onDestroy() {
