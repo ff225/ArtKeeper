@@ -36,9 +36,15 @@ class ProfileViewModel(
         Log.d("ProfileViewModel", "${_nChild}, ${_nameChild.size} ")
     }
 
-    fun checkUser(uid: String): Boolean {
-        return userRepo.checkUser(uid)
+    fun checkUser() = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkUser(uid ?: ""))
+            emit(Resource.Success("Utente registrato"))
+        else
+            emit(Resource.Failure(Exception("Utente deve registrarsi...")))
+
     }
+
 
     fun addChild(name: String) {
         //reset()
