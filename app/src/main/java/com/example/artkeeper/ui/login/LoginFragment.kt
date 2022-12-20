@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
@@ -16,14 +17,12 @@ import com.example.artkeeper.databinding.FragmentLoginBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 
 class LoginFragment : Fragment() {
     companion object {
@@ -83,17 +82,7 @@ class LoginFragment : Fragment() {
             Log.i(TAG, "Logged!")
             val user = FirebaseAuth.getInstance().currentUser
             Toast.makeText(requireContext(), "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
-
-
-            //  - Se l'utente ha inserito le informazioni base
-            //  - -> MainFragment
-            //  - else -> RegistrationFragment
-            if (userIsRegistered(user.uid))
-                findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
-            else
-                findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
-
-
+            userIsRegistered()
             Log.d(TAG, "nome: ${user.displayName}")
         } else {
             Toast.makeText(
@@ -123,14 +112,21 @@ class LoginFragment : Fragment() {
         signInLauncher.launch(signInIntent)
     }
 
-    private fun userIsRegistered(uid: String?): Boolean {
-        var userFrom = false
-        runBlocking {
-            val job = async(Dispatchers.IO) { userFrom = viewModel.checkUser(uid ?: "") }
-            job.await()
-            Log.d("TAG- userIsRegistered", userFrom.toString())
-        }
-        return userFrom
+
+    private fun userIsRegistered() {
+        viewModel.checkUser().observe(viewLifecycleOwner, Observer { result ->
+            when (result) {
+                is Resource.Loading -> Log.d(TAG, "caricamento")
+                is Resource.Success -> {
+                    Log.d(TAG, result.data)
+                    findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+                }
+                is Resource.Failure -> {
+                    Log.d(TAG, result.exception.message.toString())
+                    findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
