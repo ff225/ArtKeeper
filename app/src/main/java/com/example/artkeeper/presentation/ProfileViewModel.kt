@@ -9,6 +9,7 @@ import com.example.artkeeper.data.repository.UserRepository
 import com.example.artkeeper.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -56,7 +57,7 @@ class ProfileViewModel(
     }
 
     private fun storeChild() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             userRepo.addChild(uid!!, _nChild, _nameChild)
         }
     }
@@ -91,21 +92,34 @@ class ProfileViewModel(
         )
     }
 
-    fun updateInfoUser() {
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepo.updateUser(createUser(uid!!))
-        }
+    fun updateInfoUser(prevNickname: String) = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkNickname(_nickName) && _nickName != prevNickname)
+            emit(Resource.Failure(Exception("Nickname Utilizzato")))
+        else
+            emit(Resource.Success(userRepo.updateUser(createUser(uid!!))))
     }
 
+
+    fun insertUser() = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkNickname(_nickName))
+            emit(Resource.Failure(Exception("Nickname Utilizzato")))
+        else
+            emit(Resource.Success(userRepo.insertUser(createUser(uid!!))))
+    }
+
+/*
     //TODO: Rimuovere uid
     fun insertUser(uid: String) {
         viewModelScope.launch(Dispatchers.IO) {
             userRepo.insertUser(createUser(uid))
         }
     }
+ */
 
     fun deletePost(post: Post) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             postRepo.delete(post)
         }
     }
@@ -121,12 +135,14 @@ class ProfileViewModel(
         }
     }
 
-    fun deleteAccount() = liveData(Dispatchers.IO) {
+    fun deleteAccount() = liveData {
         emit(Resource.Loading())
         try {
-            FirebaseAuth.getInstance().currentUser?.delete()!!.await()
-            postRepo.deleteAll(uid!!)
-            userRepo.deleteUser(user.value!!)
+            coroutineScope {
+                FirebaseAuth.getInstance().currentUser?.delete()!!.await()
+                postRepo.deleteAll(uid!!)
+                userRepo.deleteUser(user.value!!)
+            }
             emit(Resource.Success("Operazione completata con successo."))
         } catch (e: Exception) {
             Log.d("ProfileViewModel", e.message.toString())
