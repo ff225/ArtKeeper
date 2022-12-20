@@ -93,12 +93,20 @@ class RegistrationFragment : Fragment() {
         Log.d(TAG, "Confirm")
         if (!checkUserInfo()) {
             createUser()
-            viewModel.insertUser(uid)
-            findNavController().navigate(R.id.action_registrationFragment_to_home)
             isRegistered = true
-            Log.d(TAG, "user registered")
+            viewModel.insertUser().observe(viewLifecycleOwner, Observer { result ->
+                when (result) {
+                    is Resource.Loading -> Log.d(TAG, "caricamento")
+                    is Resource.Success -> {
+                        findNavController().navigate(R.id.action_registrationFragment_to_home)
+                        Log.d(TAG, "user registered")
+                    }
+                    is Resource.Failure ->
+                        binding.textInputNickname.error = result.exception.message
+                }
+            })
         } else
-            Log.d(TAG, "registration failed")
+            isRegistered = false
     }
 
     private fun checkUserInfo(): Boolean {
