@@ -8,7 +8,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 
 class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
-    private val firebaseAuth = FirebaseAuth.getInstance()
+    private val firebaseAuth = FirebaseAuth.getInstance().currentUser
     private val databaseRef =
         FirebaseDatabase.getInstance("https://artkeeper-01-default-rtdb.europe-west1.firebasedatabase.app/")
 
@@ -35,9 +35,9 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
     suspend fun addSon(nChild: Int, nameChild: List<String>) {
         withContext(dispatcher) {
             async {
-                dbUser.child(FirebaseAuth.getInstance().currentUser!!.uid)
+                dbUser.child(firebaseAuth!!.uid)
                     .updateChildren(mapOf("nchild" to nChild))
-                dbUser.child(FirebaseAuth.getInstance().currentUser!!.uid)
+                dbUser.child(firebaseAuth.uid)
                     .updateChildren(mapOf("name_child" to nameChild))
             }
         }.await()
@@ -47,8 +47,8 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
     suspend fun deleteUser() =
         coroutineScope {
             delay(5000)
-            dbNickname.child(FirebaseAuth.getInstance().currentUser!!.uid).removeValue().await()
-            dbUser.child(FirebaseAuth.getInstance().currentUser!!.uid).removeValue().await()
-            FirebaseAuth.getInstance().currentUser!!.delete().await()
+            dbNickname.child(firebaseAuth!!.uid).removeValue().await()
+            dbUser.child(firebaseAuth.uid).removeValue().await()
+            firebaseAuth.delete().await()
         }
 }
