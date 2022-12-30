@@ -20,10 +20,6 @@ import com.example.artkeeper.utils.Resource
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 
-/**
- * TODO:
- *  - controllare la presenza di nickname sul db;
- */
 
 class RegistrationFragment : Fragment() {
     companion object {
@@ -89,17 +85,24 @@ class RegistrationFragment : Fragment() {
         super.onResume()
     }
 
+    /**
+     * Registra l'utente all'applicazione.
+     * Salva le informazioni sul cloud e in local su Room.
+     *
+     * TODO:
+     *  - verificare che il telefono sia connesso ad internet.
+     */
     private fun userRegistration() {
         Log.d(TAG, "Confirm")
         if (!checkUserInfo()) {
             createUser()
             isRegistered = true
-            viewModel.insertUser().observe(viewLifecycleOwner, Observer { result ->
+            viewModel.insertUserOnline().observe(viewLifecycleOwner, Observer { result ->
                 when (result) {
                     is Resource.Loading -> Log.d(TAG, "caricamento")
                     is Resource.Success -> {
                         findNavController().navigate(R.id.action_registrationFragment_to_home)
-                        Log.d(TAG, "user registered")
+                        Log.d(TAG, "user registered, ${result.data}")
                     }
                     is Resource.Failure ->
                         binding.textInputNickname.error = result.exception.message
