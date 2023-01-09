@@ -40,6 +40,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
         _binding = FragmentRegistrationBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -53,7 +54,6 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
                 else
                     binding.textInputNickname.hint = ""
             }
-
 
         viewModel.user.observe(viewLifecycleOwner) {
             binding.apply {
@@ -94,16 +94,17 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     private fun updateInfo(prevNickname: String) {
         if (!checkUserInfo()) {
             createUser()
-            viewModel.updateInfoUser(prevNickname).observe(viewLifecycleOwner, Observer { result ->
-                when (result) {
-                    is Resource.Loading -> Log.d(TAG, "caricamento...")
-                    is Resource.Success -> {
-                        findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
+            viewModel.updateInfoUser(prevNickname)
+                .observe(viewLifecycleOwner, Observer { result ->
+                    when (result) {
+                        is Resource.Loading -> Log.d(TAG, "caricamento...")
+                        is Resource.Success -> {
+                            findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
+                        }
+                        is Resource.Failure -> binding.textInputNickname.error =
+                            "Nickname già utilizzato"
                     }
-                    is Resource.Failure -> binding.textInputNickname.error =
-                        "Nickname già utilizzato"
-                }
-            })
+                })
         }
     }
 

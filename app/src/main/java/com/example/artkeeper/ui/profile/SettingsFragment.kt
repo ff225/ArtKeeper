@@ -49,7 +49,6 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         binding.btnChangeInfo.setOnClickListener {
-            //navigate to updateinfo
             findNavController().navigate(R.id.action_settingsFragment_to_updateInfoFragment)
         }
 
@@ -83,7 +82,9 @@ class SettingsFragment : Fragment() {
             showDeleteAccount()
         }
         binding.btnLogout.setOnClickListener {
+
             AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
+                viewModel.deleteAccountLocal()
                 if (it.isComplete)
                     findNavController().navigate(R.id.action_logout_move_to_home)
             }
@@ -101,7 +102,8 @@ class SettingsFragment : Fragment() {
                 dialog.cancel()
             }
             .setPositiveButton(R.string.confirm) { dialog, _ ->
-                val text = viewDialog.findViewById<EditText>(R.id.text_input_name).text.toString().trim()
+                val text =
+                    viewDialog.findViewById<EditText>(R.id.text_input_name).text.toString().trim()
                 if (text.isEmpty()) {
                     Toast.makeText(
                         requireContext(),
@@ -165,8 +167,11 @@ class SettingsFragment : Fragment() {
                         btnLogout.isEnabled = false
 
                     }
-                    (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(false)
-                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility = View.INVISIBLE
+                    (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
+                        false
+                    )
+                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility =
+                        View.INVISIBLE
 
                     Toast.makeText(
                         requireContext(),
@@ -180,12 +185,16 @@ class SettingsFragment : Fragment() {
                     Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
                         .show()
                     findNavController().navigate(R.id.action_logout_move_to_home)
-                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility = View.VISIBLE
+                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility =
+                        View.VISIBLE
                     requireActivity().viewModelStore.clear()
                 }
                 is Resource.Failure -> {
-                    (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
-                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility = View.INVISIBLE
+                    (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
+                        true
+                    )
+                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility =
+                        View.INVISIBLE
                     binding.apply {
                         progressBar.visibility = View.GONE
                         btnChangeInfo.isEnabled = true
