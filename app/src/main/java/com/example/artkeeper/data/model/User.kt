@@ -13,3 +13,13 @@ data class User(
     @ColumnInfo(name = "num_child") val nChild: Int,
     @ColumnInfo(name = "name_child") val nameChild: List<String>?
 )
+
+
+data class UserOnline(
+    var firstName: String? = "",
+    var lastName: String? = "",
+    var uid: String? = "",
+    var nickName: String? = "",
+    var nChild: Int? = 0,
+    var nameChild: List<String>? = listOf("")
+)
