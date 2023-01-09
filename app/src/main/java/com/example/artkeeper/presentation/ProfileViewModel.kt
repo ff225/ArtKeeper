@@ -4,12 +4,12 @@ import android.util.Log
 import androidx.lifecycle.*
 import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.data.model.User
+import com.example.artkeeper.data.model.UserOnline
 import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
 import com.example.artkeeper.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -24,12 +24,13 @@ class ProfileViewModel(
     private lateinit var _nickName: String
     private lateinit var _nameChild: MutableList<String>
     private var _nChild: Int = -1
-    private val uid = FirebaseAuth.getInstance().currentUser?.uid
+    private val firebaseAuth = FirebaseAuth.getInstance().currentUser
     private val _user: MutableLiveData<User> =
-        userRepo.getUser(uid!!).asLiveData() as MutableLiveData<User>
+        userRepo.getUserLocal(firebaseAuth!!.uid).asLiveData() as MutableLiveData<User>
     val user: LiveData<User> = _user
-    val numPost: LiveData<Int> = postRepo.getNumPost(uid!!).asLiveData()
-    val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(uid!!).asLiveData()
+    val numPost: LiveData<Int> = postRepo.getNumPost(firebaseAuth!!.uid).asLiveData()
+    val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(firebaseAuth!!.uid).asLiveData()
+    //private lateinit var userTmp: UserOnline
 
     init {
         reset()
@@ -38,13 +39,30 @@ class ProfileViewModel(
 
     fun checkUser() = liveData {
         emit(Resource.Loading())
-        if (userRepo.checkUser(uid ?: ""))
+        if (userRepo.checkUserRemote()) {
+            //Log.d("LoginFragment-ProfileViewModel", getUserOnline().nickName.toString())
+            //getUserOnline()
+            insertUser(createUserFromRemote(getUserOnline()))
             emit(Resource.Success("Utente registrato"))
-        else
+        } else
             emit(Resource.Failure(Exception("Utente deve registrarsi...")))
 
     }
 
+    /*
+    Le chiamate suspend vanno utilizzate quando va emesso un solo valore.
+    Non vanno usate, per es., quando vogliamo caricare i post.
+     */
+    private suspend fun getUserOnline() = userRepo.getUserOnline()
+
+    private fun createUserFromRemote(uo: UserOnline) = User(
+        uo.uid!!,
+        uo.firstName!!,
+        uo.lastName!!,
+        uo.nickName!!,
+        uo.nChild!!,
+        uo.nameChild!!
+    )
 
     fun addChild(name: String) {
         //reset()
@@ -62,11 +80,17 @@ class ProfileViewModel(
         storeChild()
     }
 
+    private fun storeChild() = viewModelScope.launch {
+        userRepo.addChildRemote(_nChild, _nameChild)
+    }
+
+/*
     private fun storeChild() {
         viewModelScope.launch {
             userRepo.addChild(uid!!, _nChild, _nameChild)
         }
     }
+ */
 
     fun setName(name: String) {
         _name = name.trim()
@@ -87,6 +111,7 @@ class ProfileViewModel(
     private fun getNChild() = _user.value?.nChild ?: 0
 
 
+
     private fun createUser(uid: String): User {
         return User(
             uid,
@@ -100,29 +125,34 @@ class ProfileViewModel(
 
     fun updateInfoUser(prevNickname: String) = liveData {
         emit(Resource.Loading())
-        if (userRepo.checkNickname(_nickName) && _nickName != prevNickname)
+        if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)
             emit(Resource.Failure(Exception("Nickname Utilizzato")))
         else
-            emit(Resource.Success(userRepo.updateUser(createUser(uid!!))))
+            emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth!!.uid))))
     }
 
-
-    fun insertUser() = liveData {
+    fun updateInfoUserOnline(prevNickname: String) = liveData {
         emit(Resource.Loading())
-        if (userRepo.checkNickname(_nickName))
+        if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)
             emit(Resource.Failure(Exception("Nickname Utilizzato")))
         else
-            emit(Resource.Success(userRepo.insertUser(createUser(uid!!))))
+            emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth!!.uid))))
     }
 
-/*
-    //TODO: Rimuovere uid
-    fun insertUser(uid: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepo.insertUser(createUser(uid))
+    fun insertUserOnline() = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkNicknameRemote(_nickName))
+            emit(Resource.Failure(Exception("Nickname Utilizzato")))
+        else {
+            insertUser(createUser(firebaseAuth!!.uid))
+            emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth!!.uid))))
         }
     }
- */
+
+
+    private suspend fun insertUser(user: User) {
+        userRepo.insertUserLocal(user)
+    }
 
     fun deletePost(post: Post) {
         viewModelScope.launch {
@@ -144,11 +174,12 @@ class ProfileViewModel(
     fun deleteAccount() = liveData {
         emit(Resource.Loading())
         try {
-            coroutineScope {
-                FirebaseAuth.getInstance().currentUser?.delete()!!.await()
-                postRepo.deleteAll(uid!!)
-                userRepo.deleteUser(user.value!!)
-            }
+            //coroutineScope {
+            //FirebaseAuth.getInstance().currentUser?.delete()!!.await()
+            //postRepo.deleteAll(uid!!)
+            //userRepo.deleteUser(user.value!!)
+            //}
+            userRepo.deleteUserRemote()
             emit(Resource.Success("Operazione completata con successo."))
         } catch (e: Exception) {
             Log.d("ProfileViewModel", e.message.toString())
