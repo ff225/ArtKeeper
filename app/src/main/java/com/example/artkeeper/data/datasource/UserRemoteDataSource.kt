@@ -41,10 +41,10 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
      * @return true se l'utente è registrato
      */
     suspend fun checkUser(): Boolean {
-        Log.d("LoginFragment", firebaseAuth!!.uid)
+        Log.d("LoginFragment - UserRemoteDataSource", firebaseAuth!!.uid)
         return withContext(dispatcher) {
             async {
-                dbUser.orderByKey().equalTo(firebaseAuth.uid).get().await().exists()
+                dbUser.orderByKey().equalTo(firebaseAuth.uid).get().await().child(firebaseAuth.uid).exists()
             }
         }.await()
     }
