@@ -1,9 +1,12 @@
 package com.example.artkeeper.data.datasource
 
+import android.util.Log
 import com.example.artkeeper.data.model.User
+import com.example.artkeeper.data.model.UserOnline
 import com.example.artkeeper.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ktx.getValue
 import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
 
@@ -31,6 +34,34 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
             }
         }.await()
     }
+
+    /**
+     * Verifica la presenza dell'utente su RealTime Database
+     *
+     * @return true se l'utente è registrato
+     */
+    suspend fun checkUser(): Boolean {
+        Log.d("LoginFragment", firebaseAuth!!.uid)
+        return withContext(dispatcher) {
+            async {
+                dbUser.orderByKey().equalTo(firebaseAuth.uid).get().await().exists()
+            }
+        }.await()
+    }
+
+    /**
+     * Se l'utente è presente copia il valore su Room db.
+     */
+    suspend fun getUser(): UserOnline {
+        //var user: UserOnline
+        return withContext(dispatcher) {
+            async {
+                val querySnapshot = dbUser.orderByKey().equalTo(firebaseAuth!!.uid).get().await()
+                querySnapshot.child(firebaseAuth.uid).getValue<UserOnline>()!!
+            }
+        }.await()
+    }
+
 
     suspend fun addSon(nChild: Int, nameChild: List<String>) {
         withContext(dispatcher) {
