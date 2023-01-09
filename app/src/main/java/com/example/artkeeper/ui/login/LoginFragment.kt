@@ -116,13 +116,19 @@ class LoginFragment : Fragment() {
     private fun userIsRegistered() {
         viewModel.checkUser().observe(viewLifecycleOwner, Observer { result ->
             when (result) {
-                is Resource.Loading -> Log.d(TAG, "caricamento")
+                is Resource.Loading -> {
+                    Log.d(TAG, "caricamento")
+                    binding.loginButton.visibility = View.GONE
+                    binding.progressBarLogin.visibility = View.VISIBLE
+                }
                 is Resource.Success -> {
                     Log.d(TAG, result.data)
+                    binding.progressBarLogin.visibility = View.GONE
                     findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
                 }
                 is Resource.Failure -> {
                     Log.d(TAG, result.exception.message.toString())
+                    binding.progressBarLogin.visibility = View.GONE
                     findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
                 }
             }
