@@ -30,7 +30,6 @@ class ProfileViewModel(
     val user: LiveData<User> = _user
     val numPost: LiveData<Int> = postRepo.getNumPost(firebaseAuth!!.uid).asLiveData()
     val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(firebaseAuth!!.uid).asLiveData()
-    //private lateinit var userTmp: UserOnline
 
     init {
         reset()
@@ -40,8 +39,6 @@ class ProfileViewModel(
     fun checkUser() = liveData {
         emit(Resource.Loading())
         if (userRepo.checkUserRemote()) {
-            //Log.d("LoginFragment-ProfileViewModel", getUserOnline().nickName.toString())
-            //getUserOnline()
             insertUser(createUserFromRemote(getUserOnline()))
             emit(Resource.Success("Utente registrato"))
         } else
@@ -71,6 +68,7 @@ class ProfileViewModel(
         _nChild = _nameChild.size
         Log.d("ProfileViewModel", "${_nameChild.size}")
         storeChild()
+
     }
 
     fun removeChild(id: Int) {
@@ -78,19 +76,19 @@ class ProfileViewModel(
         _nameChild.removeAt(id)
         _nChild = _nameChild.size
         storeChild()
+
     }
 
-    private fun storeChild() = viewModelScope.launch {
-        userRepo.addChildRemote(_nChild, _nameChild)
-    }
-
-/*
     private fun storeChild() {
         viewModelScope.launch {
-            userRepo.addChild(uid!!, _nChild, _nameChild)
+            userRepo.addChildLocal(firebaseAuth!!.uid, _nChild, _nameChild)
         }
     }
- */
+
+    // TODO: workermanager
+    private suspend fun storeChildRemote() {
+        userRepo.addChildRemote(_nChild, _nameChild)
+    }
 
     fun setName(name: String) {
         _name = name.trim()
@@ -109,7 +107,6 @@ class ProfileViewModel(
 
     private fun getNameChild() = _user.value?.nameChild ?: listOf()
     private fun getNChild() = _user.value?.nChild ?: 0
-
 
 
     private fun createUser(uid: String): User {
@@ -131,6 +128,7 @@ class ProfileViewModel(
             emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth!!.uid))))
     }
 
+    // TODO: workermanager
     fun updateInfoUserOnline(prevNickname: String) = liveData {
         emit(Resource.Loading())
         if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)
@@ -171,15 +169,15 @@ class ProfileViewModel(
         }
     }
 
+    fun deleteAccountLocal() = viewModelScope.launch {
+        userRepo.deleteUserLocal(user.value!!)
+    }
+
     fun deleteAccount() = liveData {
         emit(Resource.Loading())
         try {
-            //coroutineScope {
-            //FirebaseAuth.getInstance().currentUser?.delete()!!.await()
-            //postRepo.deleteAll(uid!!)
-            //userRepo.deleteUser(user.value!!)
-            //}
             userRepo.deleteUserRemote()
+            userRepo.deleteUserLocal(user.value!!)
             emit(Resource.Success("Operazione completata con successo."))
         } catch (e: Exception) {
             Log.d("ProfileViewModel", e.message.toString())
@@ -195,6 +193,7 @@ class ProfileViewModel(
         _nChild = getNChild()
         Log.d("ProfileViewModel", "in reset: ${user.value?.nChild}")
     }
+
 }
 
 @Suppress("UNCHECKED_CAST")

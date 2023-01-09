@@ -7,8 +7,11 @@ import com.example.artkeeper.utils.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.getValue
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
     private val firebaseAuth = FirebaseAuth.getInstance().currentUser
@@ -44,7 +47,8 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
         Log.d("LoginFragment - UserRemoteDataSource", firebaseAuth!!.uid)
         return withContext(dispatcher) {
             async {
-                dbUser.orderByKey().equalTo(firebaseAuth.uid).get().await().child(firebaseAuth.uid).exists()
+                dbUser.orderByKey().equalTo(firebaseAuth.uid).get().await().child(firebaseAuth.uid)
+                    .exists()
             }
         }.await()
     }
@@ -76,10 +80,16 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
 
     // TODO: Rimuovere delay
     suspend fun deleteUser() =
-        coroutineScope {
-            delay(5000)
-            dbNickname.child(firebaseAuth!!.uid).removeValue().await()
-            dbUser.child(firebaseAuth.uid).removeValue().await()
-            firebaseAuth.delete().await()
+        withContext(Dispatchers.Main) {
+            try {
+                val uid = firebaseAuth!!.uid
+                firebaseAuth.delete().await()
+                dbNickname.child(uid).removeValue().await()
+                dbUser.child(uid).removeValue().await()
+            } catch (e: Exception) {
+                Log.e("UserRemoteDataSource", e.message.toString())
+            }
+
+
         }
 }
