@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.addCallback
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -18,6 +20,7 @@ import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 
@@ -32,6 +35,7 @@ class SettingsFragment : Fragment() {
             (activity?.application as ArtKeeper).postRepository
         )
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -111,6 +115,7 @@ class SettingsFragment : Fragment() {
             }.show()
     }
 
+    // TODO: fix after cache
     private fun showDialogRemoveChild(childName: Array<String>?) {
 
         Log.d("SettingsFragment", childName?.size.toString())
@@ -146,11 +151,11 @@ class SettingsFragment : Fragment() {
     }
 
     private fun deleteAccount() {
-
         viewModel.deleteAccount().observe(viewLifecycleOwner, Observer { result ->
             when (result) {
                 is Resource.Loading -> {
                     binding.apply {
+                        progressBar.visibility = View.VISIBLE
                         btnChangeInfo.isEnabled = false
                         btnChangeImgProfile.isEnabled = false
                         btnAddSon.isEnabled = false
@@ -160,20 +165,29 @@ class SettingsFragment : Fragment() {
                         btnLogout.isEnabled = false
 
                     }
+                    (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(false)
+                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility = View.INVISIBLE
+
                     Toast.makeText(
                         requireContext(),
                         "Operazione in corso... verrai reindirizzato alla pagina di login.",
                         Toast.LENGTH_SHORT
                     ).show()
+                    requireActivity().onBackPressedDispatcher.addCallback(this) {
+                    }
                 }
                 is Resource.Success -> {
                     Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
                         .show()
                     findNavController().navigate(R.id.action_logout_move_to_home)
+                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility = View.VISIBLE
                     requireActivity().viewModelStore.clear()
                 }
                 is Resource.Failure -> {
+                    (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(true)
+                    activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility = View.INVISIBLE
                     binding.apply {
+                        progressBar.visibility = View.GONE
                         btnChangeInfo.isEnabled = true
                         btnChangeImgProfile.isEnabled = true
                         btnAddSon.isEnabled = true
