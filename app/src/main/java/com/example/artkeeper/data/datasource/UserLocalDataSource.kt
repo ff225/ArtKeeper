@@ -2,8 +2,11 @@ package com.example.artkeeper.data.datasource
 
 import com.example.artkeeper.data.UserDao
 import com.example.artkeeper.data.model.User
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
 
 class UserLocalDataSource(
     private val userDao: UserDao,
@@ -23,7 +26,7 @@ class UserLocalDataSource(
         withContext(dispatcher) { async { userDao.update(user) } }.await()
 
     suspend fun delete(user: User) =
-        withContext(CoroutineScope(dispatcher).coroutineContext) {
+        withContext(Dispatchers.Main) {
             userDao.delete(user)
         }
 
