@@ -36,7 +36,8 @@ class RegistrationFragment : Fragment() {
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
-            (requireActivity().application as ArtKeeper).postRepository
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
 

@@ -29,10 +29,11 @@ class SettingsFragment : Fragment() {
     private val binding: FragmentSettingsBinding
         get() = _binding!!
 
-    private val viewModel: ProfileViewModel by navGraphViewModels(R.id.profile) {
+    private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
-            (activity?.application as ArtKeeper).userRepository,
-            (activity?.application as ArtKeeper).postRepository
+            (requireActivity().application as ArtKeeper).userRepository,
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
 

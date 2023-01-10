@@ -31,10 +31,13 @@ class LoginFragment : Fragment() {
 
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
-            (activity?.application as ArtKeeper).userRepository,
-            (activity?.application as ArtKeeper).postRepository
+            (requireActivity().application as ArtKeeper).userRepository,
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
+
+
 
     private var _binding: FragmentLoginBinding? = null
     private val binding: FragmentLoginBinding

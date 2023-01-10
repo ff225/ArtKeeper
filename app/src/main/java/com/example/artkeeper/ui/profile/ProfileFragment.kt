@@ -31,10 +31,11 @@ class ProfileFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var recyclerView: RecyclerView
-    private val viewModel: ProfileViewModel by navGraphViewModels(R.id.profile) {
+    private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
-            (activity?.application as ArtKeeper).userRepository,
-            (activity?.application as ArtKeeper).postRepository
+            (requireActivity().application as ArtKeeper).userRepository,
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
 
