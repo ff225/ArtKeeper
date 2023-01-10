@@ -1,6 +1,7 @@
 package com.example.artkeeper.utils
 
 import android.app.Application
+import androidx.work.WorkManager
 import com.example.artkeeper.data.PostRoomDatabase
 import com.example.artkeeper.data.datasource.PostLocalDataSource
 import com.example.artkeeper.data.datasource.UserLocalDataSource
@@ -17,4 +18,5 @@ class ArtKeeper : Application() {
             UserRemoteDataSource()
         )
     }
+    val workManager: WorkManager by lazy { WorkManager.getInstance(this) }
 }
