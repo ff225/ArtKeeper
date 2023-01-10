@@ -2,20 +2,24 @@ package com.example.artkeeper.presentation
 
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.work.*
 import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.data.model.UserOnline
 import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
 import com.example.artkeeper.utils.Resource
+import com.example.artkeeper.workers.UserWorker
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 
 class ProfileViewModel(
     private val userRepo: UserRepository,
-    private val postRepo: PostRepository
+    private val postRepo: PostRepository,
+    private val workManager: WorkManager
 ) :
     ViewModel() {
 
@@ -124,11 +128,47 @@ class ProfileViewModel(
         emit(Resource.Loading())
         if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)
             emit(Resource.Failure(Exception("Nickname Utilizzato")))
-        else
+        else {
+            updateRemote()
             emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth!!.uid))))
+
+        }
     }
 
-    // TODO: workermanager
+    private fun updateRemote() {
+        val constraint = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val updateRequest = OneTimeWorkRequestBuilder<UserWorker>().setInputData(
+            createInputDataForUri(
+                createUser(firebaseAuth!!.uid)
+            )
+        ).setConstraints(constraint)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        workManager.enqueue(updateRequest)
+    }
+
+    private fun createInputDataForUri(createUser: User): Data {
+        val builder = Data.Builder()
+        createUser.let {
+            builder.putString("uid", it.uid)
+            builder.putString("nickname", it.nickName)
+            builder.putString("firstName", it.firstName)
+            builder.putString("lastName", it.lastName)
+            builder.putInt("nChild", it.nChild)
+            builder.putStringArray("nameChild", it.nameChild!!.toTypedArray())
+        }
+        return builder.build()
+    }
+
+    /*
+    // TODO: workmanager
     fun updateInfoUserOnline(prevNickname: String) = liveData {
         emit(Resource.Loading())
         if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)
@@ -136,14 +176,14 @@ class ProfileViewModel(
         else
             emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth!!.uid))))
     }
-
+*/
     fun insertUserOnline() = liveData {
         emit(Resource.Loading())
         if (userRepo.checkNicknameRemote(_nickName))
             emit(Resource.Failure(Exception("Nickname Utilizzato")))
         else {
             insertUser(createUser(firebaseAuth!!.uid))
-            emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth!!.uid))))
+            emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth.uid))))
         }
     }
 
@@ -199,9 +239,10 @@ class ProfileViewModel(
 @Suppress("UNCHECKED_CAST")
 class ProfileViewModelFactory(
     private val userRepo: UserRepository,
-    private val postRepo: PostRepository
+    private val postRepo: PostRepository,
+    private val workManager: WorkManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ProfileViewModel(userRepo, postRepo) as T
+        return ProfileViewModel(userRepo, postRepo, workManager) as T
     }
 }
