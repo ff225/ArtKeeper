@@ -41,11 +41,16 @@ class ProfileViewModel(
     val postUser: LiveData<List<Post>> =
         postRepo.getAllUserPost(firebaseAuth.uid.toString()).asLiveData()
 
-    val outputWorksInfos: LiveData<List<WorkInfo>>
+    val deleteRemoteUserWorksInfos: LiveData<List<WorkInfo>>
+    val logoutUserWorkInfo: LiveData<List<WorkInfo>>
 
     init {
         reset()
-        outputWorksInfos = workManager.getWorkInfosForUniqueWorkLiveData("DeleteRemoteUserWorker")
+        deleteRemoteUserWorksInfos =
+            workManager.getWorkInfosForUniqueWorkLiveData("DeleteRemoteUserWorker")
+
+        logoutUserWorkInfo =
+            workManager.getWorkInfosForUniqueWorkLiveData("DeleteLocalAccountUserWorker")
         Log.d("ProfileViewModel", "${_nChild}, ${_nameChild.size} ")
     }
 
@@ -240,7 +245,7 @@ class ProfileViewModel(
         try {
             FirebaseAuth.getInstance().currentUser?.delete()!!.await()
             reset()
-            emit(Resource.Success("Fatto"))
+            emit(Resource.Success("Operazione effettuata con successo."))
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
@@ -267,25 +272,26 @@ class ProfileViewModel(
     fun deleteLocalAccount() {
         reset()
         workManager
-            .beginUniqueWork("UpdateUserWorker", ExistingWorkPolicy.REPLACE, deleteUserLocal())
+            .beginUniqueWork(
+                "DeleteLocalAccountUserWorker",
+                ExistingWorkPolicy.REPLACE,
+                deleteUserLocal()
+            )
             .enqueue()
-
-
     }
 
 
+    // TODO: deleteRemoteUserPost
     fun deleteRemoteAccount() {
         workManager.beginUniqueWork(
             "DeleteRemoteUserWorker",
             ExistingWorkPolicy.REPLACE,
             deleteUserRemote()
-        ).then(deleteUserLocal()).enqueue()
+        )
+            .then(deleteUserLocal()).enqueue()
     }
 
-    /**
-     * TODO:
-     *  WorkManager Observer per capire quando ha finito ed effettuare il signout
-     */
+    /*
     fun deleteAccount() = liveData {
         emit(Resource.Loading())
         try {
@@ -300,7 +306,7 @@ class ProfileViewModel(
             emit(Resource.Failure(e))
         }
     }
-
+    */
     private fun reset() {
         _name = ""
         _lastName = ""
