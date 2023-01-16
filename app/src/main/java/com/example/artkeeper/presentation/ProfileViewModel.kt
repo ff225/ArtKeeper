@@ -100,7 +100,6 @@ class ProfileViewModel(
     }
 
     private fun saveChildRemote() {
-        //userRepo.addChildRemote(_nChild, _nameChild)
         val constraint = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
