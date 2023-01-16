@@ -84,20 +84,16 @@ class SettingsFragment : Fragment() {
             showDeleteAccount()
         }
         binding.btnLogout.setOnClickListener {
-            AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
-                if (it.isSuccessful) {
-                    viewModel.deleteLocalAccount()
-                    findNavController().navigate(R.id.action_logout_move_to_home)
-                }
-            }
-            /*AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
-
-                if (it.isSuccessful) {
-
-                }
-            }*/
-
+            viewModel.deleteLocalAccount()
+            viewModel.logoutUserWorkInfo.observe(viewLifecycleOwner, logout())
         }
+        /*AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
+
+            if (it.isSuccessful) {
+
+            }
+        }*/
+
     }
 
     private fun showDialogAddChild() {
@@ -154,12 +150,29 @@ class SettingsFragment : Fragment() {
             .setPositiveButton(R.string.confirm) { _, _ ->
                 //deleteAccount()
                 viewModel.deleteRemoteAccount()
-                viewModel.outputWorksInfos.observe(viewLifecycleOwner, deleteAccount())
+                viewModel.deleteRemoteUserWorksInfos.observe(viewLifecycleOwner, deleteAccount())
             }
             .setNegativeButton(R.string.delete) { dialog, _ ->
                 dialog.cancel()
             }
             .show()
+    }
+
+    private fun logout(): Observer<List<WorkInfo>> {
+        return Observer { listOfWorkInfo ->
+            if (listOfWorkInfo.isNullOrEmpty())
+                return@Observer
+            val workInfo = listOfWorkInfo[listOfWorkInfo.lastIndex]
+            if (workInfo.state.isFinished) {
+                AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        findNavController().navigate(R.id.action_logout_move_to_home)
+                    }
+                }
+
+            }
+
+        }
     }
 
 
@@ -168,11 +181,14 @@ class SettingsFragment : Fragment() {
             if (listOfWorkInfo.isNullOrEmpty()) {
                 return@Observer
             }
-            val workInfo = listOfWorkInfo[1]
-            Log.d("SettingsFragment", listOfWorkInfo[1].toString())
+            //val workInfo = listOfWorkInfo[2]
+            val workInfo = listOfWorkInfo[listOfWorkInfo.lastIndex]
+            Log.d("SettingsFragment", listOfWorkInfo[2].toString())
             if (workInfo.state.isFinished) {
-                AuthUI.getInstance().signOut(requireContext())
-                findNavController().navigate(R.id.action_logout_move_to_home)
+                AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
+                    if (it.isSuccessful)
+                        findNavController().navigate(R.id.action_logout_move_to_home)
+                }
             } else {
                 binding.apply {
                     progressBar.visibility = View.VISIBLE
