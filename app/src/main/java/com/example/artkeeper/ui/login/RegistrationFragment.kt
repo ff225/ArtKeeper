@@ -17,6 +17,7 @@ import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 import com.example.artkeeper.utils.Resource
+import com.firebase.ui.auth.AuthUI
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 
@@ -166,6 +167,7 @@ class RegistrationFragment : Fragment() {
                 is Resource.Success -> {
                     Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
                         .show()
+                    AuthUI.getInstance().signOut(requireContext())
                     findNavController().navigate(R.id.profile)
                 }
                 is Resource.Failure -> {
