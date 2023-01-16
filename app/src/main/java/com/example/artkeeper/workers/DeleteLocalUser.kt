@@ -8,7 +8,12 @@ import com.example.artkeeper.data.model.User
 import com.example.artkeeper.utils.ArtKeeper
 
 class DeleteLocalUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+
+
     private val userRepository = (ctx.applicationContext as ArtKeeper).userRepository
+    private val postRepository = (ctx.applicationContext as ArtKeeper).postRepository
+
+
     override suspend fun doWork(): Result {
 
         return try {
@@ -29,7 +34,11 @@ class DeleteLocalUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(
                     nameChild
                 )
             )
-            Result.success(workDataOf("value" to  true))
+
+            postRepository.deleteAll(uid)
+
+
+            Result.success(workDataOf("value" to true))
         } catch (e: Exception) {
             return Result.failure()
         }
