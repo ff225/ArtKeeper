@@ -13,12 +13,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
+import androidx.work.WorkInfo
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentSettingsBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -48,6 +48,7 @@ class SettingsFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
 
         binding.btnChangeInfo.setOnClickListener {
             findNavController().navigate(R.id.action_settingsFragment_to_updateInfoFragment)
@@ -83,12 +84,18 @@ class SettingsFragment : Fragment() {
             showDeleteAccount()
         }
         binding.btnLogout.setOnClickListener {
-
-            AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
-                viewModel.deleteAccountLocal()
-                if (it.isComplete)
+            AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
+                if (it.isSuccessful) {
+                    viewModel.deleteLocalAccount()
                     findNavController().navigate(R.id.action_logout_move_to_home)
+                }
             }
+            /*AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
+
+                if (it.isSuccessful) {
+
+                }
+            }*/
 
         }
     }
@@ -145,7 +152,9 @@ class SettingsFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Sicuro di voler procedere?")
             .setPositiveButton(R.string.confirm) { _, _ ->
-                deleteAccount()
+                //deleteAccount()
+                viewModel.deleteRemoteAccount()
+                viewModel.outputWorksInfos.observe(viewLifecycleOwner, deleteAccount())
             }
             .setNegativeButton(R.string.delete) { dialog, _ ->
                 dialog.cancel()
@@ -153,7 +162,41 @@ class SettingsFragment : Fragment() {
             .show()
     }
 
-    private fun deleteAccount() {
+
+    private fun deleteAccount(): Observer<List<WorkInfo>> {
+        return Observer { listOfWorkInfo ->
+            if (listOfWorkInfo.isNullOrEmpty()) {
+                return@Observer
+            }
+            val workInfo = listOfWorkInfo[1]
+            Log.d("SettingsFragment", listOfWorkInfo[1].toString())
+            if (workInfo.state.isFinished) {
+                AuthUI.getInstance().signOut(requireContext())
+                findNavController().navigate(R.id.action_logout_move_to_home)
+            } else {
+                binding.apply {
+                    progressBar.visibility = View.VISIBLE
+                    btnChangeInfo.isEnabled = false
+                    btnChangeImgProfile.isEnabled = false
+                    btnAddSon.isEnabled = false
+                    btnRmvSon.isEnabled = false
+                    btnChangeImgProfile.isEnabled = false
+                    btnDeleteAccount.isEnabled = false
+                    btnLogout.isEnabled = false
+
+                }
+                (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
+                    false
+                )
+                activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility =
+                    View.INVISIBLE
+
+                requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+                }
+            }
+
+        }
+        /*
         viewModel.deleteAccount().observe(viewLifecycleOwner, Observer { result ->
             when (result) {
                 is Resource.Loading -> {
@@ -217,6 +260,8 @@ class SettingsFragment : Fragment() {
                 }
             }
         })
+
+         */
     }
 
     override fun onDestroy() {
