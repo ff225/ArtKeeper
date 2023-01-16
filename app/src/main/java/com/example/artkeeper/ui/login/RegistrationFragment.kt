@@ -1,5 +1,7 @@
 package com.example.artkeeper.ui.login
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -117,6 +119,13 @@ class RegistrationFragment : Fragment() {
     private fun checkUserInfo(): Boolean {
 
         var hasError = false
+        val connMgr =
+            (requireActivity()).getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connMgr.activeNetworkInfo
+        if (networkInfo?.isConnected == null) {
+            hasError = true
+            Toast.makeText(requireContext(), "Connessione assente.", Toast.LENGTH_SHORT).show()
+        }
         if (binding.textInputName.text.toString().trim()
                 .isEmpty() || !(binding.textInputName.text.toString()
                 .matches(regex))
@@ -160,8 +169,8 @@ class RegistrationFragment : Fragment() {
                     }
                     Toast.makeText(
                         requireContext(),
-                        "Vuoi cancellare l'account?",
-                        Toast.LENGTH_LONG
+                        "Operazione in corso...",
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
                 is Resource.Success -> {
@@ -173,7 +182,7 @@ class RegistrationFragment : Fragment() {
                 is Resource.Failure -> {
                     Toast.makeText(
                         requireContext(),
-                        "Effettua il login per completare questa azione",
+                        "Devi essere connesso ad internet per completare questa operazione.",
                         Toast.LENGTH_LONG
                     )
                         .show()
