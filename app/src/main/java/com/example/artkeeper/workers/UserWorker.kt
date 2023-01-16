@@ -30,8 +30,10 @@ class UserWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, 
                     nameChild
                 )
             )
+            Log.d("UserWorker", runAttemptCount.toString())
             return Result.success()
-        } catch (t: Throwable) {
+        } catch (t: Exception) {
+            Log.d("UserWorker", runAttemptCount.toString())
             Log.e("UserWorker", "Error")
             Result.failure()
         }
