@@ -12,6 +12,7 @@ import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.example.artkeeper.utils.Resource
 import com.example.artkeeper.workers.DeleteLocalUser
 import com.example.artkeeper.workers.DeleteRemoteUser
+import com.example.artkeeper.workers.SaveChildRemote
 import com.example.artkeeper.workers.UserWorker
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
@@ -92,14 +93,33 @@ class ProfileViewModel(
     }
 
     private fun storeChild() {
+        saveChildRemote()
         viewModelScope.launch {
             userRepo.addChildLocal(firebaseAuth.uid.toString(), _nChild, _nameChild)
         }
     }
 
-    // TODO: workmanager
-    private suspend fun storeChildRemote() {
-        userRepo.addChildRemote(_nChild, _nameChild)
+    private fun saveChildRemote() {
+        //userRepo.addChildRemote(_nChild, _nameChild)
+        val constraint = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val saveChildRequest = OneTimeWorkRequestBuilder<SaveChildRemote>()
+            .setInputData(
+                workDataOf("nChild" to _nChild, "nameChild" to _nameChild.toTypedArray())
+            ).setConstraints(constraint)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        workManager
+            .beginUniqueWork("SaveChildWorker", ExistingWorkPolicy.REPLACE, saveChildRequest)
+            .enqueue()
+
+
     }
 
     fun setName(name: String) {
