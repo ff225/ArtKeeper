@@ -1,10 +1,13 @@
 package com.example.artkeeper.ui.profile
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -120,8 +123,14 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     }
 
     private fun checkUserInfo(): Boolean {
-
         var hasError = false
+        val connMgr =
+            (requireActivity()).getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connMgr.activeNetworkInfo
+        if (networkInfo?.isConnected == null) {
+            hasError = true
+            Toast.makeText(requireContext(), "Connessione assente.", Toast.LENGTH_SHORT).show()
+        }
         if (binding.textInputName.text.toString().trim()
                 .isEmpty() || !(binding.textInputName.text.toString()
                 .matches(regex))
