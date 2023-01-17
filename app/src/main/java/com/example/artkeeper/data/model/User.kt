@@ -21,5 +21,5 @@ data class UserOnline(
     var uid: String? = "",
     var nickName: String? = "",
     var nChild: Int? = 0,
-    var nameChild: List<String>? = listOf("")
+    var nameChild: List<String>? = listOf()
 )
