@@ -1,18 +1,23 @@
 package com.example.artkeeper.ui.profile
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentRegistrationBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Resource
 
 class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     companion object {
@@ -20,15 +25,17 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         val regex = Regex("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*\$")
     }
 
+    private lateinit var prevNickname: String
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
 
 
-    private val viewModel: ProfileViewModel by activityViewModels {
+    private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
-            (activity?.application as ArtKeeper).userRepository,
-            (activity?.application as ArtKeeper).postRepository
+            (requireActivity().application as ArtKeeper).userRepository,
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
 
@@ -37,6 +44,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
         _binding = FragmentRegistrationBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -57,32 +65,72 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
                 textInputLastname.setText(it.lastName)
                 textInputNickname.setText(it.nickName)
             }
-
+            prevNickname = it.nickName
         }
-        binding.confirmButton.setOnClickListener {
-            if (!checkUserInfo()) {
-                viewModel.apply {
-                    setName(binding.textInputName.text.toString().trim())
-                    setLastName(binding.textInputLastname.text.toString().trim())
-                    setNickName(
-                        binding.textInputNickname.text.toString().lowercase().trim()
-                            .filterNot { it.isWhitespace() })
 
-                }
-                viewModel.updateInfoUser()
-                findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
-            } else
-                Toast.makeText(
-                    requireContext(),
-                    "Devi riempire tutti i campi...",
-                    Toast.LENGTH_LONG
-                ).show()
+        binding.confirmButton.setOnClickListener {
+
+            Log.d(TAG, prevNickname)
+            if (!checkUserInfo()) {
+                updateInfo(prevNickname)
+            }
+            /*
+            viewModel.apply {
+                setName(binding.textInputName.text.toString().trim())
+                setLastName(binding.textInputLastname.text.toString().trim())
+                setNickName(
+                    binding.textInputNickname.text.toString().lowercase().trim()
+                        .filterNot { it.isWhitespace() })
+
+            }
+            viewModel.updateInfoUser()
+            findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
+        }else
+            Toast.makeText(
+                requireContext(),
+                "Devi riempire tutti i campi...",
+                Toast.LENGTH_LONG
+            ).show()
+            */
+        }
+    }
+
+    private fun updateInfo(prevNickname: String) {
+        if (!checkUserInfo()) {
+            createUser()
+            viewModel.updateInfoUser(prevNickname)
+                .observe(viewLifecycleOwner, Observer { result ->
+                    when (result) {
+                        is Resource.Loading -> Log.d(TAG, "caricamento...")
+                        is Resource.Success -> {
+                            findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
+                        }
+                        is Resource.Failure -> binding.textInputNickname.error =
+                            "Nickname già utilizzato"
+                    }
+                })
+        }
+    }
+
+    private fun createUser() {
+        viewModel.apply {
+            setName(binding.textInputName.text.toString().trim())
+            setLastName(binding.textInputLastname.text.toString().trim())
+            setNickName(
+                binding.textInputNickname.text.toString().lowercase().trim()
+                    .filterNot { it.isWhitespace() })
         }
     }
 
     private fun checkUserInfo(): Boolean {
-
         var hasError = false
+        val connMgr =
+            (requireActivity()).getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connMgr.activeNetworkInfo
+        if (networkInfo?.isConnected == null) {
+            hasError = true
+            Toast.makeText(requireContext(), "Connessione assente.", Toast.LENGTH_SHORT).show()
+        }
         if (binding.textInputName.text.toString().trim()
                 .isEmpty() || !(binding.textInputName.text.toString()
                 .matches(regex))

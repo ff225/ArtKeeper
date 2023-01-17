@@ -2,19 +2,28 @@ package com.example.artkeeper.presentation
 
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.work.*
 import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.data.model.User
+import com.example.artkeeper.data.model.UserOnline
 import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
+import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.example.artkeeper.utils.Resource
+import com.example.artkeeper.workers.DeleteLocalUser
+import com.example.artkeeper.workers.DeleteRemoteUser
+import com.example.artkeeper.workers.SaveChildRemote
+import com.example.artkeeper.workers.UserWorker
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.concurrent.TimeUnit
 
 class ProfileViewModel(
     private val userRepo: UserRepository,
-    private val postRepo: PostRepository
+    private val postRepo: PostRepository,
+    private val workManager: WorkManager
 ) :
     ViewModel() {
 
@@ -23,21 +32,52 @@ class ProfileViewModel(
     private lateinit var _nickName: String
     private lateinit var _nameChild: MutableList<String>
     private var _nChild: Int = -1
-    private val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+    //private val firebaseAuth = FirebaseAuth.getInstance().currentUser
     private val _user: MutableLiveData<User> =
-        userRepo.getUser(uid!!).asLiveData() as MutableLiveData<User>
+        userRepo.getUserLocal(firebaseAuth.uid.toString()).asLiveData() as MutableLiveData<User>
     val user: LiveData<User> = _user
-    val numPost: LiveData<Int> = postRepo.getNumPost(uid!!).asLiveData()
-    val postUser: LiveData<List<Post>> = postRepo.getAllUserPost(uid!!).asLiveData()
+    val numPost: LiveData<Int> = postRepo.getNumPost(firebaseAuth.uid.toString()).asLiveData()
+    val postUser: LiveData<List<Post>> =
+        postRepo.getAllUserPost(firebaseAuth.uid.toString()).asLiveData()
+
+    val deleteRemoteUserWorksInfos: LiveData<List<WorkInfo>>
+    val logoutUserWorkInfo: LiveData<List<WorkInfo>>
 
     init {
         reset()
+        deleteRemoteUserWorksInfos =
+            workManager.getWorkInfosForUniqueWorkLiveData("DeleteRemoteUserWorker")
+
+        logoutUserWorkInfo =
+            workManager.getWorkInfosForUniqueWorkLiveData("DeleteLocalAccountUserWorker")
         Log.d("ProfileViewModel", "${_nChild}, ${_nameChild.size} ")
     }
 
-    fun checkUser(uid: String): Boolean {
-        return userRepo.checkUser(uid)
+    fun checkUser() = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkUserRemote()) {
+            insertUser(createUserFromRemote(getUserOnline()))
+            emit(Resource.Success("Utente registrato"))
+        } else
+            emit(Resource.Failure(Exception("Utente deve registrarsi...")))
+
     }
+
+    /*
+    Le chiamate suspend vanno utilizzate quando va emesso un solo valore.
+    Non vanno usate, per es., quando vogliamo caricare i post.
+     */
+    private suspend fun getUserOnline() = userRepo.getUserOnline()
+
+    private fun createUserFromRemote(uo: UserOnline) = User(
+        uo.uid!!,
+        uo.firstName!!,
+        uo.lastName!!,
+        uo.nickName!!,
+        uo.nChild!!,
+        uo.nameChild ?: listOf()
+    )
 
     fun addChild(name: String) {
         //reset()
@@ -46,6 +86,7 @@ class ProfileViewModel(
         _nChild = _nameChild.size
         Log.d("ProfileViewModel", "${_nameChild.size}")
         storeChild()
+
     }
 
     fun removeChild(id: Int) {
@@ -53,12 +94,36 @@ class ProfileViewModel(
         _nameChild.removeAt(id)
         _nChild = _nameChild.size
         storeChild()
+
     }
 
     private fun storeChild() {
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepo.addChild(uid!!, _nChild, _nameChild)
+        saveChildRemote()
+        viewModelScope.launch {
+            userRepo.addChildLocal(firebaseAuth.uid.toString(), _nChild, _nameChild)
         }
+    }
+
+    private fun saveChildRemote() {
+        val constraint = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val saveChildRequest = OneTimeWorkRequestBuilder<SaveChildRemote>()
+            .setInputData(
+                workDataOf("nChild" to _nChild, "nameChild" to _nameChild.toTypedArray())
+            ).setConstraints(constraint)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        workManager
+            .beginUniqueWork("SaveChildWorker", ExistingWorkPolicy.REPLACE, saveChildRequest)
+            .enqueue()
+
+
     }
 
     fun setName(name: String) {
@@ -91,21 +156,86 @@ class ProfileViewModel(
         )
     }
 
-    fun updateInfoUser() {
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepo.updateUser(createUser(uid!!))
+    /*
+    TODO:
+        workmanager per checkNickname:
+            Impostare vincolo della connessione.
+            Se l'app non è connessa ad internet, torna l'errore
+            Altrimenti controlla continua con la modifica.
+     */
+    fun updateInfoUser(prevNickname: String) = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)
+            emit(Resource.Failure(Exception("Nickname Utilizzato")))
+        else {
+            updateRemote()
+            emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth.uid.toString()))))
+
         }
     }
 
-    //TODO: Rimuovere uid
-    fun insertUser(uid: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            userRepo.insertUser(createUser(uid))
+    private fun updateRemote() {
+        val constraint = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val updateRequest = OneTimeWorkRequestBuilder<UserWorker>()
+
+            .setInputData(
+                createInputDataForUri(
+                    createUser(firebaseAuth.uid.toString())
+                )
+            ).setConstraints(constraint)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+        workManager
+            .beginUniqueWork("UpdateUserWorker", ExistingWorkPolicy.REPLACE, updateRequest)
+            .enqueue()
+
+    }
+
+    private fun createInputDataForUri(user: User) =
+        workDataOf(
+            "uid" to user.uid,
+            "nickname" to user.nickName,
+            "firstName" to user.firstName,
+            "lastName" to user.lastName,
+            "nChild" to user.nChild,
+            "nameChild" to user.nameChild?.toTypedArray()
+        )
+
+
+    /*
+    // TODO: workmanager
+    fun updateInfoUserOnline(prevNickname: String) = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)
+            emit(Resource.Failure(Exception("Nickname Utilizzato")))
+        else
+            emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth!!.uid))))
+    }
+*/
+    fun insertUserOnline() = liveData {
+        emit(Resource.Loading())
+        if (userRepo.checkNicknameRemote(_nickName))
+            emit(Resource.Failure(Exception("Nickname Utilizzato")))
+        else {
+            insertUser(createUser(firebaseAuth.uid.toString()))
+            emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth.uid.toString()))))
         }
+    }
+
+
+    private suspend fun insertUser(user: User) {
+        userRepo.insertUserLocal(user)
     }
 
     fun deletePost(post: Post) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             postRepo.delete(post)
         }
     }
@@ -115,25 +245,68 @@ class ProfileViewModel(
         try {
             FirebaseAuth.getInstance().currentUser?.delete()!!.await()
             reset()
-            emit(Resource.Success("Fatto"))
+            emit(Resource.Success("Operazione effettuata con successo."))
         } catch (e: Exception) {
             emit(Resource.Failure(e))
         }
     }
 
-    fun deleteAccount() = liveData(Dispatchers.IO) {
+    private fun deleteUserLocal(): OneTimeWorkRequest =
+        OneTimeWorkRequestBuilder<DeleteLocalUser>()
+            .setInputData(
+                createInputDataForUri(
+                    createUser(firebaseAuth.uid.toString())
+                )
+            )
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+
+    private fun deleteUserRemote() = OneTimeWorkRequestBuilder<DeleteRemoteUser>().build()
+
+
+    fun deleteLocalAccount() {
+        reset()
+        workManager
+            .beginUniqueWork(
+                "DeleteLocalAccountUserWorker",
+                ExistingWorkPolicy.REPLACE,
+                deleteUserLocal()
+            )
+            .enqueue()
+    }
+
+
+    // TODO: deleteRemoteUserPost
+    fun deleteRemoteAccount() {
+        workManager.beginUniqueWork(
+            "DeleteRemoteUserWorker",
+            ExistingWorkPolicy.REPLACE,
+            deleteUserRemote()
+        )
+            .then(deleteUserLocal()).enqueue()
+    }
+
+    /*
+    fun deleteAccount() = liveData {
         emit(Resource.Loading())
         try {
-            FirebaseAuth.getInstance().currentUser?.delete()!!.await()
-            postRepo.deleteAll(uid!!)
-            userRepo.deleteUser(user.value!!)
+            deleteRemoteAccount()
+            //userRepo.deleteUserRemote()
+            //userRepo.deleteUserLocal(user.value!!)
+            //deleteLocalAccount()
             emit(Resource.Success("Operazione completata con successo."))
+
         } catch (e: Exception) {
             Log.d("ProfileViewModel", e.message.toString())
             emit(Resource.Failure(e))
         }
     }
-
+    */
     private fun reset() {
         _name = ""
         _lastName = ""
@@ -142,14 +315,16 @@ class ProfileViewModel(
         _nChild = getNChild()
         Log.d("ProfileViewModel", "in reset: ${user.value?.nChild}")
     }
+
 }
 
 @Suppress("UNCHECKED_CAST")
 class ProfileViewModelFactory(
     private val userRepo: UserRepository,
-    private val postRepo: PostRepository
+    private val postRepo: PostRepository,
+    private val workManager: WorkManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ProfileViewModel(userRepo, postRepo) as T
+        return ProfileViewModel(userRepo, postRepo, workManager) as T
     }
 }

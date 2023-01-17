@@ -1,5 +1,7 @@
 package com.example.artkeeper.ui.login
 
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -17,13 +19,10 @@ import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 import com.example.artkeeper.utils.Resource
+import com.firebase.ui.auth.AuthUI
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 
-/**
- * TODO:
- *  - controllare la presenza di nickname sul db;
- */
 
 class RegistrationFragment : Fragment() {
     companion object {
@@ -40,7 +39,8 @@ class RegistrationFragment : Fragment() {
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
-            (requireActivity().application as ArtKeeper).postRepository
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
 
@@ -89,21 +89,43 @@ class RegistrationFragment : Fragment() {
         super.onResume()
     }
 
+    /**
+     * Registra l'utente all'applicazione.
+     * Salva le informazioni sul cloud e in local su Room.
+     *
+     * TODO:
+     *  - verificare che il telefono sia connesso ad internet.
+     */
     private fun userRegistration() {
         Log.d(TAG, "Confirm")
         if (!checkUserInfo()) {
             createUser()
-            viewModel.insertUser(uid)
-            findNavController().navigate(R.id.action_registrationFragment_to_home)
             isRegistered = true
-            Log.d(TAG, "user registered")
+            viewModel.insertUserOnline().observe(viewLifecycleOwner, Observer { result ->
+                when (result) {
+                    is Resource.Loading -> Log.d(TAG, "caricamento")
+                    is Resource.Success -> {
+                        findNavController().navigate(R.id.action_registrationFragment_to_home)
+                        Log.d(TAG, "user registered, ${result.data}")
+                    }
+                    is Resource.Failure ->
+                        binding.textInputNickname.error = result.exception.message
+                }
+            })
         } else
-            Log.d(TAG, "registration failed")
+            isRegistered = false
     }
 
     private fun checkUserInfo(): Boolean {
 
         var hasError = false
+        val connMgr =
+            (requireActivity()).getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connMgr.activeNetworkInfo
+        if (networkInfo?.isConnected == null) {
+            hasError = true
+            Toast.makeText(requireContext(), "Connessione assente.", Toast.LENGTH_SHORT).show()
+        }
         if (binding.textInputName.text.toString().trim()
                 .isEmpty() || !(binding.textInputName.text.toString()
                 .matches(regex))
@@ -147,19 +169,20 @@ class RegistrationFragment : Fragment() {
                     }
                     Toast.makeText(
                         requireContext(),
-                        "Vuoi cancellare l'account?",
-                        Toast.LENGTH_LONG
+                        "Operazione in corso...",
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
                 is Resource.Success -> {
                     Toast.makeText(requireContext(), result.data, Toast.LENGTH_LONG)
                         .show()
+                    AuthUI.getInstance().signOut(requireContext())
                     findNavController().navigate(R.id.profile)
                 }
                 is Resource.Failure -> {
                     Toast.makeText(
                         requireContext(),
-                        "Effettua il login per completare questa azione",
+                        "Devi essere connesso ad internet per completare questa operazione.",
                         Toast.LENGTH_LONG
                     )
                         .show()

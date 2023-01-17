@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
@@ -16,26 +17,24 @@ import com.example.artkeeper.databinding.FragmentLoginBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Constants.TAG_LOGIN_FRAGMENT
+import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
 
 class LoginFragment : Fragment() {
-    companion object {
-        const val TAG = "LoginFragment"
-    }
-
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
-            (activity?.application as ArtKeeper).userRepository,
-            (activity?.application as ArtKeeper).postRepository
+            (requireActivity().application as ArtKeeper).userRepository,
+            (requireActivity().application as ArtKeeper).postRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
+
+
 
     private var _binding: FragmentLoginBinding? = null
     private val binding: FragmentLoginBinding
@@ -75,26 +74,17 @@ class LoginFragment : Fragment() {
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
 
-        Log.d(TAG, "onSignInResult")
+        Log.d(TAG_LOGIN_FRAGMENT, "onSignInResult")
         val response = result.idpResponse
 
         if (result.resultCode == AppCompatActivity.RESULT_OK) {
             // Successfully signed in
-            Log.i(TAG, "Logged!")
+            Log.i(TAG_LOGIN_FRAGMENT, "Logged!")
             val user = FirebaseAuth.getInstance().currentUser
+            Log.d("$TAG_LOGIN_FRAGMENT - onSignInResult", user?.uid.toString())
             Toast.makeText(requireContext(), "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
-
-
-            //  - Se l'utente ha inserito le informazioni base
-            //  - -> MainFragment
-            //  - else -> RegistrationFragment
-            if (userIsRegistered(user.uid))
-                findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
-            else
-                findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
-
-
-            Log.d(TAG, "nome: ${user.displayName}")
+            userIsRegistered()
+            Log.d(TAG_LOGIN_FRAGMENT, "nome: ${user.displayName}")
         } else {
             Toast.makeText(
                 requireContext(),
@@ -102,12 +92,12 @@ class LoginFragment : Fragment() {
                 Toast.LENGTH_LONG
             ).show()
 
-            Log.d(TAG, "login error: ${response?.error?.errorCode}")
+            Log.d(TAG_LOGIN_FRAGMENT, "login error: ${response?.error?.errorCode}")
         }
     }
 
     private fun createSignInIntent() {
-        Log.d(TAG, "createSignInIntent")
+        Log.d(TAG_LOGIN_FRAGMENT, "createSignInIntent")
 
         val providers = arrayListOf(
             AuthUI.IdpConfig.GoogleBuilder().build(),
@@ -123,14 +113,27 @@ class LoginFragment : Fragment() {
         signInLauncher.launch(signInIntent)
     }
 
-    private fun userIsRegistered(uid: String?): Boolean {
-        var userFrom = false
-        runBlocking {
-            val job = async(Dispatchers.IO) { userFrom = viewModel.checkUser(uid ?: "") }
-            job.await()
-            Log.d("TAG- userIsRegistered", userFrom.toString())
-        }
-        return userFrom
+
+    private fun userIsRegistered() {
+        viewModel.checkUser().observe(viewLifecycleOwner, Observer { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    Log.d(TAG_LOGIN_FRAGMENT, "caricamento")
+                    binding.loginButton.visibility = View.GONE
+                    binding.progressBarLogin.visibility = View.VISIBLE
+                }
+                is Resource.Success -> {
+                    Log.d(TAG_LOGIN_FRAGMENT, result.data)
+                    binding.progressBarLogin.visibility = View.GONE
+                    findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+                }
+                is Resource.Failure -> {
+                    Log.d(TAG_LOGIN_FRAGMENT, result.exception.message.toString())
+                    binding.progressBarLogin.visibility = View.GONE
+                    findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
