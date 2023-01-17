@@ -76,7 +76,7 @@ class ProfileViewModel(
         uo.lastName!!,
         uo.nickName!!,
         uo.nChild!!,
-        uo.nameChild!!
+        uo.nameChild ?: listOf()
     )
 
     fun addChild(name: String) {
