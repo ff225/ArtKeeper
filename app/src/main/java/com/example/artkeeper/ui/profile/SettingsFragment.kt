@@ -125,7 +125,7 @@ class SettingsFragment : Fragment() {
     private fun showDialogRemoveChild(childName: Array<String>?) {
 
         Log.d("SettingsFragment", childName?.size.toString())
-        lateinit var select: String
+        var select: String? = null
         var index = -1
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Chi vuoi cancellare?")
@@ -183,7 +183,7 @@ class SettingsFragment : Fragment() {
             }
             //val workInfo = listOfWorkInfo[2]
             val workInfo = listOfWorkInfo[listOfWorkInfo.lastIndex]
-            Log.d("SettingsFragment", listOfWorkInfo[2].toString())
+            Log.d("SettingsFragment", workInfo.toString())
             if (workInfo.state.isFinished) {
                 AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
                     if (it.isSuccessful)
