@@ -15,7 +15,7 @@ class PostViewModel(private val repo: PostRepository, userRepo: UserRepository) 
     ViewModel() {
 
     private val uid: String = FirebaseAuth.getInstance().currentUser!!.uid
-    val user: LiveData<User> = userRepo.getUser(uid).asLiveData()
+    val user: LiveData<User> = userRepo.getUserLocal(uid).asLiveData()
     private var _imageUri: MutableLiveData<Uri?> = MutableLiveData(null)
     val imageUri: LiveData<Uri?>
         get() = _imageUri
