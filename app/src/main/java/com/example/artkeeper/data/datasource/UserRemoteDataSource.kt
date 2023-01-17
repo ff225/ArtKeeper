@@ -6,7 +6,6 @@ import com.example.artkeeper.data.model.UserOnline
 import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.example.artkeeper.utils.Resource
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ktx.getValue
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -56,6 +55,7 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
     /**
      * Se l'utente è presente copia il valore su Room db.
      */
+    @Suppress("UNCHECKED_CAST")
     suspend fun getUser(): UserOnline {
         //var user: UserOnline
         Log.d(
@@ -64,10 +64,21 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
         )
         return withContext(dispatcher) {
             async {
+                //var userOnline:UserOnline? = null
                 val querySnapshot =
                     dbUser.orderByKey().equalTo(firebaseAuth.uid).get()
                         .await()
-                querySnapshot.child(firebaseAuth.uid.toString()).getValue<UserOnline>()!!
+
+               val user = querySnapshot.child(firebaseAuth.uid.toString()).value!! as HashMap<String, *>
+                Log.d("LoginFragment", user.toString())
+                UserOnline(
+                    user["firstName"].toString(),
+                    user["lastName"].toString(),
+                    user["uid"].toString(),
+                    user["nickName"].toString(),
+                    user["nchild"].toString().toInt(),
+                    user["name_child"] as List<String>?
+                )
             }
         }.await()
     }
