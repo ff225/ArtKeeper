@@ -156,13 +156,6 @@ class ProfileViewModel(
         )
     }
 
-    /*
-    TODO:
-        workmanager per checkNickname:
-            Impostare vincolo della connessione.
-            Se l'app non è connessa ad internet, torna l'errore
-            Altrimenti controlla continua con la modifica.
-     */
     fun updateInfoUser(prevNickname: String) = liveData {
         emit(Resource.Loading())
         if (userRepo.checkNicknameLocal(_nickName) && _nickName != prevNickname)

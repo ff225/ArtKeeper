@@ -19,10 +19,8 @@ class UserRepository(
 
     suspend fun updateUserLocal(user: User) = userLocalDataSource.update(user)
 
-    // TODO: utilizzare quando l'utente effettua il logout
     suspend fun deleteUserLocal(user: User) = userLocalDataSource.delete(user)
 
-    // TODO: utilizzare quando l'utente aggiunge un figlio
     suspend fun addChildLocal(uid: String, nChild: Int, nameChild: List<String>) =
         userLocalDataSource.addChild(uid, nChild, nameChild)
 
