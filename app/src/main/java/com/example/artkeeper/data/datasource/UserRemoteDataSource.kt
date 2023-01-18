@@ -5,6 +5,7 @@ import com.example.artkeeper.data.model.User
 import com.example.artkeeper.data.model.UserOnline
 import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.example.artkeeper.utils.Resource
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +70,8 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
                     dbUser.orderByKey().equalTo(firebaseAuth.uid).get()
                         .await()
 
-               val user = querySnapshot.child(firebaseAuth.uid.toString()).value!! as HashMap<String, *>
+                val user =
+                    querySnapshot.child(firebaseAuth.uid.toString()).value!! as HashMap<String, *>
                 Log.d("LoginFragment", user.toString())
                 UserOnline(
                     user["firstName"].toString(),
@@ -95,16 +97,26 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
         }.await()
     }
 
-    suspend fun deleteUser() {
+    suspend fun deleteUser(): Result<Boolean> {
         Log.d("LoginFragment - UserRemoteDataSource - deleteUser", firebaseAuth.uid.toString())
-        withContext(dispatcher) {
+
+        return withContext(dispatcher) {
             try {
                 val uid = firebaseAuth.uid
-                firebaseAuth.currentUser?.delete()?.await()
+                firebaseAuth.currentUser!!.delete().await()
                 dbNickname.child(uid!!).removeValue().await()
                 dbUser.child(uid).removeValue().await()
-            } catch (e: Exception) {
+                /* firebaseAuth.currentUser!!.delete().addOnCompleteListener {
+                     if (it.isSuccessful) {
+                         dbNickname.child(uid!!).removeValue()
+                         dbUser.child(uid).removeValue()
+                     }
+                 }.await()*/
+                Result.success(true)
+                //firebaseAuth.currentUser!!.delete().await()
+            } catch (e: FirebaseAuthRecentLoginRequiredException) {
                 Log.e("UserRemoteDataSource", e.message.toString())
+                Result.failure(Throwable(e.message))
             }
         }
     }

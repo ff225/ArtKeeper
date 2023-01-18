@@ -37,7 +37,7 @@ class UserRepository(
     suspend fun checkUserRemote(): Boolean = userRemoteDataSource.checkUser()
     suspend fun getUserOnline(): UserOnline = userRemoteDataSource.getUser()
 
-    suspend fun deleteUserRemote() = userRemoteDataSource.deleteUser()
+    suspend fun deleteUserRemote():Result<Boolean> = userRemoteDataSource.deleteUser()
 
     suspend fun addChildRemote(nChild: Int, nameChild: List<String>) =
         userRemoteDataSource.addSon(nChild, nameChild)
