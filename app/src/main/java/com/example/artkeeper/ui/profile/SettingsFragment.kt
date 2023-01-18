@@ -11,6 +11,7 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import androidx.work.WorkInfo
@@ -185,10 +186,20 @@ class SettingsFragment : Fragment() {
             val workInfo = listOfWorkInfo[listOfWorkInfo.lastIndex]
             Log.d("SettingsFragment", workInfo.toString())
             if (workInfo.state.isFinished) {
+                if (WorkInfo.State.FAILED == workInfo.state)
+                    Toast.makeText(
+                        requireContext(),
+                        "Operazione sensibile. Effettua il login",
+                        Toast.LENGTH_LONG
+                    ).show()
                 AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {
-                    if (it.isSuccessful)
-                        findNavController().navigate(R.id.action_logout_move_to_home)
+                    if (it.isSuccessful) {
+                        lifecycleScope.launchWhenCreated {
+                            findNavController().navigate(R.id.action_logout_move_to_home)
+                        }
+                    }
                 }
+
             } else {
                 binding.apply {
                     progressBar.visibility = View.VISIBLE
