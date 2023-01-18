@@ -259,8 +259,15 @@ class ProfileViewModel(
             .build()
 
 
-    private fun deleteUserRemote() = OneTimeWorkRequestBuilder<DeleteRemoteUser>().build()
-
+    private fun deleteUserRemote(): OneTimeWorkRequest {
+        val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        return OneTimeWorkRequestBuilder<DeleteRemoteUser>().setConstraints(constraint)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            ).build()
+    }
 
     fun deleteLocalAccount() {
         reset()
