@@ -12,6 +12,8 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
+    private val TAG = javaClass.simpleName
+
     private val databaseRef =
         FirebaseDatabase.getInstance("https://artkeeper-01-default-rtdb.europe-west1.firebasedatabase.app/")
 
@@ -38,7 +40,7 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
 
 
     suspend fun checkUser(): Result<Boolean> {
-        Log.d("LoginFragment - UserRemoteDataSource", firebaseAuth.uid.toString())
+        Log.d(TAG, "in checkUser, ${firebaseAuth.uid.toString()}")
         return withContext(dispatcher) {
             if (dbUser.orderByKey().equalTo(firebaseAuth.uid).get()
                     .await().child(firebaseAuth.uid.toString())
@@ -65,7 +67,7 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
 
             val user =
                 querySnapshot.child(firebaseAuth.uid.toString()).value!! as HashMap<String, *>
-            Log.d("LoginFragment", user.toString())
+            Log.d(TAG, "in getUser, $user")
             return@withContext Result.success(
                 UserOnline(
                     user["firstName"].toString(),
@@ -98,7 +100,7 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
                 dbUser.child(uid).removeValue().await()
                 Result.success(true)
             } catch (e: FirebaseAuthRecentLoginRequiredException) {
-                Log.e("UserRemoteDataSource", e.message.toString())
+                Log.e(TAG, e.message.toString())
                 Result.failure(Throwable(e.message))
             }
         }

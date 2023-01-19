@@ -17,14 +17,11 @@ import com.example.artkeeper.databinding.FragmentRegistrationBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Constants.regex
 import com.example.artkeeper.utils.Resource
 
 class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
-    companion object {
-        const val TAG = "UpdateInfoFragment"
-        val regex = Regex("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*\$")
-    }
-
+    private val TAG: String = javaClass.simpleName
     private lateinit var prevNickname: String
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
@@ -70,28 +67,10 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
 
         binding.confirmButton.setOnClickListener {
 
-            Log.d(TAG, prevNickname)
+            Log.d(TAG, "in confirmButton, previous name: $prevNickname")
             if (!checkUserInfo()) {
                 updateInfo(prevNickname)
             }
-            /*
-            viewModel.apply {
-                setName(binding.textInputName.text.toString().trim())
-                setLastName(binding.textInputLastname.text.toString().trim())
-                setNickName(
-                    binding.textInputNickname.text.toString().lowercase().trim()
-                        .filterNot { it.isWhitespace() })
-
-            }
-            viewModel.updateInfoUser()
-            findNavController().navigate(R.id.action_updateInfoFragment_to_profileFragment)
-        }else
-            Toast.makeText(
-                requireContext(),
-                "Devi riempire tutti i campi...",
-                Toast.LENGTH_LONG
-            ).show()
-            */
         }
     }
 

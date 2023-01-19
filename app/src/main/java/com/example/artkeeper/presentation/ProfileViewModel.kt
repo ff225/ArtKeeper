@@ -26,6 +26,7 @@ class ProfileViewModel(
     private val workManager: WorkManager
 ) :
     ViewModel() {
+    private val TAG: String = javaClass.simpleName
 
     private lateinit var _name: String
     private lateinit var _lastName: String
@@ -50,7 +51,7 @@ class ProfileViewModel(
 
         logoutUserWorkInfo =
             workManager.getWorkInfosForUniqueWorkLiveData("DeleteLocalAccountUserWorker")
-        Log.d("ProfileViewModel", "${_nChild}, ${_nameChild.size} ")
+        Log.d(TAG, "${_nChild}, ${_nameChild.size} ")
     }
 
     fun setName(name: String) {
@@ -110,7 +111,8 @@ class ProfileViewModel(
         _nameChild = _user.value?.nameChild as MutableList<String>
         _nameChild.add(name)
         _nChild = _nameChild.size
-        Log.d("ProfileViewModel", "${_nameChild.size}")
+        Log.i(TAG, "in addChild, Names: $_nameChild")
+        Log.i(TAG, "in addChild, Size: $_nChild")
         saveChild()
 
     }
@@ -119,6 +121,8 @@ class ProfileViewModel(
         _nameChild = _user.value?.nameChild as MutableList<String>
         _nameChild.removeAt(id)
         _nChild = _nameChild.size
+        Log.i(TAG, "in removeChild, Names: $_nameChild")
+        Log.i(TAG, "in removeChild, Size: $_nChild")
         saveChild()
 
     }
@@ -285,7 +289,7 @@ class ProfileViewModel(
         _nickName = ""
         _nameChild = getNameChild().toMutableList()
         _nChild = getNChild()
-        Log.d("ProfileViewModel", "in reset: ${user.value?.nChild}")
+        Log.i(TAG, "in reset, reset delle variabili")
     }
 
 }

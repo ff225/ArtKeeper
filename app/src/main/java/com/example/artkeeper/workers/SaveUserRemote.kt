@@ -8,7 +8,7 @@ import com.example.artkeeper.data.model.User
 import com.example.artkeeper.utils.ArtKeeper
 
 class SaveUserRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
-
+    private val TAG: String = javaClass.simpleName
     private val userRepository = (ctx.applicationContext as ArtKeeper).userRepository
     override suspend fun doWork(): Result {
         val uid = inputData.getString("uid")
@@ -28,7 +28,7 @@ class SaveUserRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
                 nameChild
             )
         )
-        Log.d("SaveUserRemote", runAttemptCount.toString())
+        Log.d(TAG, "Success")
         return Result.success()
     }
 }
