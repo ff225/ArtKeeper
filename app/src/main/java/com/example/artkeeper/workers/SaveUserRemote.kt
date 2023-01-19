@@ -7,7 +7,7 @@ import androidx.work.WorkerParameters
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.utils.ArtKeeper
 
-class SaveRemoteUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
+class SaveUserRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
 
     private val userRepository = (ctx.applicationContext as ArtKeeper).userRepository
     override suspend fun doWork(): Result {
@@ -28,7 +28,7 @@ class SaveRemoteUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
                 nameChild
             )
         )
-        Log.d("UserWorker", runAttemptCount.toString())
+        Log.d("SaveUserRemote", runAttemptCount.toString())
         return Result.success()
     }
 }
