@@ -11,26 +11,13 @@ class DeleteRemoteUser(ctx: Context, params: WorkerParameters) : CoroutineWorker
     override suspend fun doWork(): Result {
 
         userRepository.deleteUserRemote().onSuccess {
-            Log.d("DeleteRemoteUser - onSuccess", "isDeleted: ${it.toString()}")
+            Log.d("DeleteRemoteUser - onSuccess", "isDeleted: $it")
             return Result.success()
         }.onFailure { error ->
-            Log.d("DeleteUserRemote - onFailure", error.cause.toString())
+            Log.e("DeleteUserRemote - onFailure", error.message.toString())
             return Result.failure()
         }
 
         return Result.success()
-        //return Result.success()
-        /*return try {
-
-            }
-            Log.d("DeleteRemoteUserWorker", userRepository.deleteUserRemote().toString())
-            //Log.d("DeleteRemoteUserWorker", runAttemptCount.toString())
-            Result.success()
-        } catch (t: Exception)
-        {
-            Log.d("DeleteRemoteUserWorker", runAttemptCount.toString())
-            Log.e("DeleteRemoteUserUserWorker", "Error")
-            Result.failure()
-        }*/
     }
 }
