@@ -132,6 +132,7 @@ class LoginFragment : Fragment() {
                     binding.progressBarLogin.visibility = View.GONE
                     findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
                 }
+                else -> {}
             }
         })
     }

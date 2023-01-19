@@ -92,16 +92,13 @@ class RegistrationFragment : Fragment() {
     /**
      * Registra l'utente all'applicazione.
      * Salva le informazioni sul cloud e in local su Room.
-     *
-     * TODO:
-     *  - verificare che il telefono sia connesso ad internet.
      */
     private fun userRegistration() {
         Log.d(TAG, "Confirm")
         if (!checkUserInfo()) {
             createUser()
             isRegistered = true
-            viewModel.insertUserOnline().observe(viewLifecycleOwner, Observer { result ->
+            viewModel.userRegistration().observe(viewLifecycleOwner, Observer { result ->
                 when (result) {
                     is Resource.Loading -> Log.d(TAG, "caricamento")
                     is Resource.Success -> {
