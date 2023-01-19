@@ -31,10 +31,10 @@ class UserRepository(
 
     suspend fun checkUserRemote(): Result<Boolean> = userRemoteDataSource.checkUser()
 
-    suspend fun getUserOnline(): Result<UserOnline> = userRemoteDataSource.getUser()
+    suspend fun getUserRemote(): Result<UserOnline> = userRemoteDataSource.getUser()
 
     suspend fun deleteUserRemote(): Result<Boolean> = userRemoteDataSource.deleteUser()
 
     suspend fun addChildRemote(nChild: Int, nameChild: List<String>) =
-        userRemoteDataSource.addSon(nChild, nameChild)
+        userRemoteDataSource.addChild(nChild, nameChild)
 }

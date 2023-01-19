@@ -79,7 +79,7 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
         }
     }
 
-    suspend fun addSon(nChild: Int, nameChild: List<String>) {
+    suspend fun addChild(nChild: Int, nameChild: List<String>) {
         withContext(dispatcher) {
             dbUser.child(firebaseAuth.uid.toString())
                 .updateChildren(mapOf("nchild" to nChild))
