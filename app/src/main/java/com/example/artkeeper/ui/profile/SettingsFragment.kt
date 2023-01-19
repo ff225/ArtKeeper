@@ -85,7 +85,7 @@ class SettingsFragment : Fragment() {
             showDeleteAccount()
         }
         binding.btnLogout.setOnClickListener {
-            viewModel.deleteLocalAccount()
+            viewModel.deleteUserLocalWork()
             viewModel.logoutUserWorkInfo.observe(viewLifecycleOwner, logout())
         }
         /*AuthUI.getInstance().signOut(requireActivity()).addOnCompleteListener {
@@ -150,8 +150,8 @@ class SettingsFragment : Fragment() {
             .setTitle("Sicuro di voler procedere?")
             .setPositiveButton(R.string.confirm) { _, _ ->
                 //deleteAccount()
-                viewModel.deleteRemoteAccount()
-                viewModel.deleteRemoteUserWorksInfos.observe(viewLifecycleOwner, deleteAccount())
+                viewModel.deleteUserRemoteWork()
+                viewModel.deleteRemoteUserWorksInfo.observe(viewLifecycleOwner, deleteAccount())
             }
             .setNegativeButton(R.string.delete) { dialog, _ ->
                 dialog.cancel()
