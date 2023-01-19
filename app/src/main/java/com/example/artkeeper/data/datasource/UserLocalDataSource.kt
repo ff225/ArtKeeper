@@ -17,10 +17,6 @@ class UserLocalDataSource(
         withContext(dispatcher) { async { userDao.insert(user) } }.await()
     }
 
-    suspend fun checkNickname(nickname: String): Boolean {
-        return withContext(dispatcher) { async { userDao.checkNickname(nickname) } }.await()
-    }
-
 
     suspend fun update(user: User) =
         withContext(dispatcher) { async { userDao.update(user) } }.await()
@@ -32,8 +28,6 @@ class UserLocalDataSource(
 
     suspend fun addChild(uid: String, nChild: Int, nameChild: List<String>) =
         withContext(dispatcher) { userDao.addChild(uid, nChild, nameChild) }
-
-    suspend fun checkUser(uid: String): Boolean = withContext(dispatcher) { userDao.checkUser(uid) }
 
     fun getUser(uid: String): Flow<User> = userDao.getUser(uid)
 

@@ -14,9 +14,6 @@ class UserRepository(
 
     suspend fun insertUserLocal(user: User) = userLocalDataSource.insert(user)
 
-    suspend fun checkNicknameLocal(nickName: String): Boolean =
-        userLocalDataSource.checkNickname(nickName)
-
     suspend fun updateUserLocal(user: User) = userLocalDataSource.update(user)
 
     suspend fun deleteUserLocal(user: User) = userLocalDataSource.delete(user)
@@ -24,20 +21,19 @@ class UserRepository(
     suspend fun addChildLocal(uid: String, nChild: Int, nameChild: List<String>) =
         userLocalDataSource.addChild(uid, nChild, nameChild)
 
-    suspend fun checkUser(uid: String): Boolean = userLocalDataSource.checkUser(uid)
-
     fun getUserLocal(uid: String): Flow<User> =
         userLocalDataSource.getUser(uid).distinctUntilChanged()
 
     suspend fun insertUserRemote(user: User) = userRemoteDataSource.insertUser(user)
 
-    suspend fun checkNicknameRemote(nickName: String): Boolean =
+    suspend fun checkNicknameRemote(nickName: String): Result<Boolean> =
         userRemoteDataSource.checkNickname(nickName)
 
-    suspend fun checkUserRemote(): Boolean = userRemoteDataSource.checkUser()
-    suspend fun getUserOnline(): UserOnline = userRemoteDataSource.getUser()
+    suspend fun checkUserRemote(): Result<Boolean> = userRemoteDataSource.checkUser()
 
-    suspend fun deleteUserRemote():Result<Boolean> = userRemoteDataSource.deleteUser()
+    suspend fun getUserOnline(): Result<UserOnline> = userRemoteDataSource.getUser()
+
+    suspend fun deleteUserRemote(): Result<Boolean> = userRemoteDataSource.deleteUser()
 
     suspend fun addChildRemote(nChild: Int, nameChild: List<String>) =
         userRemoteDataSource.addSon(nChild, nameChild)
