@@ -1,30 +1,22 @@
 package com.example.artkeeper.data
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Query
 import com.example.artkeeper.data.model.User
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface UserDao {
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(user: User)
-
-    @Update
-    suspend fun update(user: User)
-
-    @Delete
-    suspend fun delete(user: User)
+abstract class UserDao : BaseDao<User> {
 
     @Query("SELECT EXISTS (SELECT * FROM users WHERE nickname=:nickname)")
-    suspend fun checkNickname(nickname: String): Boolean
+    abstract suspend fun checkNickname(nickname: String): Boolean
 
     @Query("UPDATE users SET num_child=:nChild, name_child=:nameChild WHERE uid=:uid")
-    suspend fun addChild(uid: String, nChild: Int, nameChild: List<String>)
+    abstract suspend fun addChild(uid: String, nChild: Int, nameChild: List<String>)
 
     @Query("SELECT count(*) FROM users WHERE uid= :uid")
-    suspend fun checkUser(uid: String): Boolean
+    abstract suspend fun checkUser(uid: String): Boolean
 
     @Query("SELECT * FROM users WHERE uid=:uid")
-    fun getUser(uid: String): Flow<User>
+    abstract fun getUser(uid: String): Flow<User>
 }
