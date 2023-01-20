@@ -188,10 +188,8 @@ class SettingsFragment : Fragment() {
                 binding.apply {
                     progressBar.visibility = View.VISIBLE
                     btnChangeInfo.isEnabled = false
-                    btnChangeImgProfile.isEnabled = false
                     btnAddSon.isEnabled = false
                     btnRmvSon.isEnabled = false
-                    btnChangeImgProfile.isEnabled = false
                     btnDeleteAccount.isEnabled = false
                     btnLogout.isEnabled = false
 
