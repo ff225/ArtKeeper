@@ -1,5 +1,6 @@
 package com.example.artkeeper.presentation
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.work.*
@@ -36,7 +37,9 @@ class ProfileViewModel(
 
     private val _user: MutableLiveData<User> =
         userRepo.getUserLocal(firebaseAuth.uid.toString()).asLiveData() as MutableLiveData<User>
+
     val user: LiveData<User> = _user
+    val image: Uri? = firebaseAuth.currentUser?.photoUrl
     val numPost: LiveData<Int> = postRepo.getNumPost(firebaseAuth.uid.toString()).asLiveData()
     val postUser: LiveData<List<Post>> =
         postRepo.getAllUserPost(firebaseAuth.uid.toString()).asLiveData()
@@ -52,6 +55,7 @@ class ProfileViewModel(
         logoutUserWorkInfo =
             workManager.getWorkInfosForUniqueWorkLiveData("DeleteLocalAccountUserWorker")
         Log.d(TAG, "${_nChild}, ${_nameChild.size} ")
+        Log.d(TAG, "in init, image profile path: ${firebaseAuth.currentUser?.photoUrl.toString()}")
     }
 
     fun setName(name: String) {

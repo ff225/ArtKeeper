@@ -1,5 +1,6 @@
 package com.example.artkeeper.ui.profile
 
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.PostAdapter
 import com.example.artkeeper.data.model.Post
@@ -23,10 +25,7 @@ import com.example.artkeeper.utils.ArtKeeper
 
 class ProfileFragment : Fragment() {
 
-    companion object {
-        const val TAG = "ProfileFragment"
-    }
-
+    private val TAG: String = javaClass.simpleName
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
@@ -60,6 +59,10 @@ class ProfileFragment : Fragment() {
         recyclerView.adapter = adapter
 
         viewModel.user.observe(viewLifecycleOwner) {
+            val imageUri: Uri = viewModel.image!!
+            Glide.with(binding.imageProfile.context)
+                .load(imageUri)
+                .into(binding.imageProfile)
             binding.tvName.text = it?.firstName
             binding.tvLastName.text = it?.lastName
             binding.tvUsername.text = it?.nickName
@@ -93,7 +96,7 @@ class ProfileFragment : Fragment() {
             override fun onMenuItemClick(item: MenuItem?): Boolean {
                 when (item?.itemId) {
                     R.id.cancel_button -> {
-                        Log.d(TAG, "cancello post...${post.id}")
+                        Log.d(TAG, "in cancelButton, cancello post: ${post.id}")
                         viewModel.deletePost(post)
                         binding.recyclerViewProfile.adapter?.notifyItemRemoved(position)
                         // here are the logic to delete an item from the list
