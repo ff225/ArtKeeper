@@ -1,15 +1,16 @@
 package com.example.artkeeper.data.model
 
+import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 
 @Entity(tableName = "users", primaryKeys = ["uid"])
 data class User(
-    @ColumnInfo(name = "uid") val uid: String,
-    @ColumnInfo(name = "first_name") val firstName: String,
-    @ColumnInfo(name = "last_name") val lastName: String,
-    @ColumnInfo(name = "nickname") val nickName: String,
-    @ColumnInfo(name = "num_child") val nChild: Int,
+    @NonNull @ColumnInfo(name = "uid") val uid: String,
+    @NonNull @ColumnInfo(name = "first_name") val firstName: String,
+    @NonNull @ColumnInfo(name = "last_name") val lastName: String,
+    @NonNull @ColumnInfo(name = "nickname") val nickName: String,
+    @NonNull @ColumnInfo(name = "num_child") val nChild: Int,
     @ColumnInfo(name = "name_child") val nameChild: List<String>?
 )
 
