@@ -26,6 +26,8 @@
     <string name="nickname">Nickname</string>
     <string name="confirm">Conferma</string>
     <string name="save">Salva</string>
+    <string name="rmv_son">Rimuovere figlio</string>
+    <string name="delete_account">Cancellare account?</string>
     <array name="choice">
         <item>Fotocamera</item>
         <item>Galleria</item>
