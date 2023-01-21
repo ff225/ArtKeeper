@@ -18,6 +18,7 @@ import com.example.artkeeper.databinding.FragmentRegistrationBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Constants.regex
 import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -25,12 +26,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 
 class RegistrationFragment : Fragment() {
-    companion object {
-        const val TAG = "RegistrationFragment"
-        val regex = Regex("^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*\$")
-    }
-
-    private val uid = FirebaseAuth.getInstance().currentUser!!.uid
+    private val TAG: String = javaClass.simpleName
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
@@ -92,24 +88,23 @@ class RegistrationFragment : Fragment() {
     /**
      * Registra l'utente all'applicazione.
      * Salva le informazioni sul cloud e in local su Room.
-     *
-     * TODO:
-     *  - verificare che il telefono sia connesso ad internet.
      */
     private fun userRegistration() {
-        Log.d(TAG, "Confirm")
+
         if (!checkUserInfo()) {
             createUser()
             isRegistered = true
-            viewModel.insertUserOnline().observe(viewLifecycleOwner, Observer { result ->
+            viewModel.userRegistration().observe(viewLifecycleOwner, Observer { result ->
                 when (result) {
                     is Resource.Loading -> Log.d(TAG, "caricamento")
                     is Resource.Success -> {
                         findNavController().navigate(R.id.action_registrationFragment_to_home)
-                        Log.d(TAG, "user registered, ${result.data}")
+                        Log.d(TAG, "in userRegistration, user registered: ${result.data}")
                     }
-                    is Resource.Failure ->
+                    is Resource.Failure -> {
                         binding.textInputNickname.error = result.exception.message
+                        Log.e(TAG, "in userRegistration, ${result.exception.message.toString()}")
+                    }
                 }
             })
         } else

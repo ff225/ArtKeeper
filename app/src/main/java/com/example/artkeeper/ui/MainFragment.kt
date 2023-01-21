@@ -29,9 +29,8 @@ import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 
 class MainFragment : Fragment() {
-    companion object {
-        const val TAG = "MainFragment"
-    }
+
+    private val TAG: String = javaClass.simpleName
 
     private var _binding: FragmentMainBinding? = null
     private val binding: FragmentMainBinding
@@ -50,8 +49,6 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d(TAG, "onCreateView")
-        Log.d(TAG, "${FirebaseAuth.getInstance().currentUser}")
         if (FirebaseAuth.getInstance().currentUser == null) {
             findNavController().navigate(R.id.profile)
         }
@@ -94,7 +91,7 @@ class MainFragment : Fragment() {
                 when (item?.itemId) {
                     R.id.share_post -> {
 
-                        Log.d(TAG, post.imagePath.toString())
+                        Log.d(TAG, "image path: ${post.imagePath}")
                         val path = try {
                             FileProvider.getUriForFile(
                                 requireContext(),
@@ -104,7 +101,7 @@ class MainFragment : Fragment() {
                                 )
                             )
                         } catch (e: SecurityException) {
-                            Log.d(TAG, e.toString())
+                            Log.e(TAG, e.toString())
                         }
 
                         val shareIntent =

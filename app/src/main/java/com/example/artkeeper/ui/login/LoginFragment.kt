@@ -17,7 +17,6 @@ import com.example.artkeeper.databinding.FragmentLoginBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
-import com.example.artkeeper.utils.Constants.TAG_LOGIN_FRAGMENT
 import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
@@ -26,6 +25,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.auth.FirebaseAuth
 
 class LoginFragment : Fragment() {
+
+    private val TAG: String = javaClass.simpleName
+
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
@@ -33,8 +35,6 @@ class LoginFragment : Fragment() {
             (requireActivity().application as ArtKeeper).workManager
         )
     }
-
-
 
     private var _binding: FragmentLoginBinding? = null
     private val binding: FragmentLoginBinding
@@ -74,17 +74,14 @@ class LoginFragment : Fragment() {
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
 
-        Log.d(TAG_LOGIN_FRAGMENT, "onSignInResult")
         val response = result.idpResponse
 
         if (result.resultCode == AppCompatActivity.RESULT_OK) {
             // Successfully signed in
-            Log.i(TAG_LOGIN_FRAGMENT, "Logged!")
+            Log.i(TAG, "in onSignInResult, Logged!")
             val user = FirebaseAuth.getInstance().currentUser
-            Log.d("$TAG_LOGIN_FRAGMENT - onSignInResult", user?.uid.toString())
             Toast.makeText(requireContext(), "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
             userIsRegistered()
-            Log.d(TAG_LOGIN_FRAGMENT, "nome: ${user.displayName}")
         } else {
             Toast.makeText(
                 requireContext(),
@@ -92,12 +89,11 @@ class LoginFragment : Fragment() {
                 Toast.LENGTH_LONG
             ).show()
 
-            Log.d(TAG_LOGIN_FRAGMENT, "login error: ${response?.error?.errorCode}")
+            Log.e(TAG, "in onSignInResult, login error: ${response?.error?.errorCode}")
         }
     }
 
     private fun createSignInIntent() {
-        Log.d(TAG_LOGIN_FRAGMENT, "createSignInIntent")
 
         val providers = arrayListOf(
             AuthUI.IdpConfig.GoogleBuilder().build(),
@@ -118,20 +114,23 @@ class LoginFragment : Fragment() {
         viewModel.checkUser().observe(viewLifecycleOwner, Observer { result ->
             when (result) {
                 is Resource.Loading -> {
-                    Log.d(TAG_LOGIN_FRAGMENT, "caricamento")
+                    Log.d(TAG, "in userIsRegistered, caricamento")
                     binding.loginButton.visibility = View.GONE
                     binding.progressBarLogin.visibility = View.VISIBLE
                 }
                 is Resource.Success -> {
-                    Log.d(TAG_LOGIN_FRAGMENT, result.data)
+                    Log.d(
+                        TAG, "in userIsRegistered, ${result.data}"
+                    )
                     binding.progressBarLogin.visibility = View.GONE
                     findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
                 }
                 is Resource.Failure -> {
-                    Log.d(TAG_LOGIN_FRAGMENT, result.exception.message.toString())
+                    Log.e(TAG, "in userIsRegistered, ${result.exception.message.toString()}")
                     binding.progressBarLogin.visibility = View.GONE
                     findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
                 }
+                else -> {}
             }
         })
     }

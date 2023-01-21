@@ -4,9 +4,20 @@ import android.net.Uri
 import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "post")
+@Entity(
+    tableName = "post",
+    foreignKeys = [ForeignKey(
+        entity = User::class,
+        parentColumns = ["uid"],
+        childColumns = ["uid_user"],
+        onDelete = CASCADE,
+        onUpdate = CASCADE
+    )]
+)
 data class Post(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @NonNull @ColumnInfo(name = "uid_user") val uidUser: String,
@@ -17,5 +28,6 @@ data class Post(
     @ColumnInfo(name = "description") val description: String?,
     @NonNull @ColumnInfo(name = "is_uploaded") val isUploaded: Boolean = false,
     @NonNull @ColumnInfo(name = "post_timestamp") val postTimestamp: Long,
-    //val idProfile: Int
 )
+
+// https://medium.com/androiddevelopers/7-pro-tips-for-room-fbadea4bfbd1#3e94

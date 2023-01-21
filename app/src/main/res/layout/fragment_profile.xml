@@ -67,30 +67,13 @@
             app:icon="@drawable/ic_baseline_settings_24" />
     </LinearLayout>
 
-
-    <LinearLayout
-        android:id="@+id/ll_switch_layout"
+    <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/recycler_view_profile"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/image_profile">
-
-
-        <ImageView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_baseline_grid_on_24" />
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@drawable/ic_baseline_view_headline_24" />
-    </LinearLayout>
+        app:layout_constraintTop_toBottomOf="@id/ll_info_user" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_profile"
@@ -100,7 +83,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/ll_switch_layout" />
+        app:layout_constraintTop_toBottomOf="@id/ll_info_user" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
