@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 abstract class PostDao : BaseDao<Post> {
 
+    @Query("UPDATE post SET nickname =:nickName WHERE uid_user=:uid")
+    abstract suspend fun updateNicknamePost(nickName: String, uid: String)
 
     @Query("DELETE FROM post where uid_user =:uid")
     abstract suspend fun deleteAll(uid: String)

@@ -17,6 +17,10 @@ class PostLocalDataSource(
         postDao.insert(post)
     }
 
+    suspend fun updateNicknamePost(nickName: String, uid: String) = withContext(dispatcher) {
+        postDao.updateNicknamePost(nickName, uid)
+    }
+
     suspend fun update(post: Post) {
         postDao.update(post)
     }

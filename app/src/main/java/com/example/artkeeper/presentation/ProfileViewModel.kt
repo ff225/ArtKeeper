@@ -170,10 +170,15 @@ class ProfileViewModel(
             "nameChild" to user.nameChild?.toTypedArray()
         )
 
+    private fun updateNicknamePost(nickName: String) = viewModelScope.launch {
+        postRepo.updateNicknamePost(nickName, firebaseAuth.uid!!)
+    }
+
     fun updateUserInfo(prevNickname: String) = liveData {
         emit(Resource.Loading())
         userRepo.checkNicknameRemote(_nickName).onSuccess {
             updateUserInfoWork()
+            updateNicknamePost(_nickName)
             emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth.uid.toString()))))
         }.onFailure {
             if (_nickName != prevNickname)
