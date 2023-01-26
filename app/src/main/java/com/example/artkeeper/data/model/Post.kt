@@ -31,3 +31,11 @@ data class Post(
 )
 
 // https://medium.com/androiddevelopers/7-pro-tips-for-room-fbadea4bfbd1#3e94
+
+data class PostRemote(
+    //var uid: String? = "",
+    var imagePath: String = "",
+    var sketchedBy: String? = null,
+    var description: String? = null,
+    var postTimestamp: String = ""
+)
