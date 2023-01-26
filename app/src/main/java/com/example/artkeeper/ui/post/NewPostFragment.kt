@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import androidx.core.view.isEmpty
@@ -50,7 +51,8 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
     private val viewModel: PostViewModel by viewModels {
         PostViewModelFactory(
             (requireActivity().application as ArtKeeper).postRepository,
-            (requireActivity().application as ArtKeeper).userRepository
+            (requireActivity().application as ArtKeeper).userRepository,
+            (requireActivity().application as ArtKeeper).workManager
         )
     }
 
@@ -113,15 +115,16 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         }
     }
 
-    private val getPhotoFromGallery =
-        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri.let {
-                if (it != null) {
-                    Log.d(TAG, it.path.toString())
-                    viewModel.setImageUri(saveImageToInternalStorage(it))
-                }
+    private val getPhotoFromPhotoPicker =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            if (uri != null) {
+                Log.d("$TAG, PhotoPicker", "Selected URI: $uri")
+                viewModel.setImageUri(saveImageToInternalStorage(uri))
+            } else {
+                Log.d("$TAG, PhotoPicker", "No media selected")
             }
         }
+
 
     private val getPhotoFromCamera =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { isSuccess ->
@@ -138,7 +141,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         when (photoFrom) {
             Source.GALLERY -> {
                 Log.d(TAG, "Pick photo from gallery")
-                getPhotoFromGallery.launch("image/*")
+                getPhotoFromPhotoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }
             else -> {
                 Log.d(TAG, "Pick photo from camera")
@@ -206,7 +209,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         Log.d(TAG, file.path)
         try {
             val stream: OutputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
             stream.flush()
             stream.close()
         } catch (e: IOException) {
