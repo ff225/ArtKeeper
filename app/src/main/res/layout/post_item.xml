@@ -30,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
-            android:layout_margin="20dp"
+            android:layout_margin="15dp"
             android:gravity="center"
             android:text="⋮"
             android:textAppearance="?android:textAppearanceLarge"
@@ -43,7 +43,7 @@
             android:layout_width="300dp"
             android:layout_height="300dp"
             android:layout_marginTop="10dp"
-            android:scaleType="fitCenter"
+            android:scaleType="centerInside"
             app:layout_constraintBottom_toTopOf="@id/child_name_item"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -71,29 +71,6 @@
             app:layout_constraintTop_toBottomOf="@id/description_item"
             tools:text="20/10/2022" />
 
-        <ImageView
-            android:id="@+id/image_like_item"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/ic_outline_mood_24"
-            app:layout_constraintEnd_toStartOf="@id/child_name_item"
-            app:layout_constraintHorizontal_bias="0.15"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/photo_item" />
-
-        <TextView
-            android:id="@+id/like_item"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@id/child_name_item"
-            app:layout_constraintHorizontal_bias="0.05"
-            app:layout_constraintStart_toEndOf="@id/image_like_item"
-            app:layout_constraintTop_toBottomOf="@id/photo_item"
-            tools:text="0" />
 
         <TextView
             android:id="@+id/description_item"
@@ -104,7 +81,7 @@
             android:padding="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/like_item"
+            app:layout_constraintTop_toBottomOf="@id/child_name_item"
             tools:text="@tools:sample/lorem/random" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>
