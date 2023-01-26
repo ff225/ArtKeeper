@@ -11,11 +11,10 @@ import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
 import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.example.artkeeper.utils.Resource
-import com.example.artkeeper.workers.DeleteLocalUser
-import com.example.artkeeper.workers.DeleteRemoteUser
-import com.example.artkeeper.workers.SaveChildRemote
-import com.example.artkeeper.workers.SaveUserRemote
+import com.example.artkeeper.workers.*
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseException
+import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -40,9 +39,9 @@ class ProfileViewModel(
 
     val user: LiveData<User> = _user
     val image: Uri? = firebaseAuth.currentUser?.photoUrl
-    val numPost: LiveData<Int> = postRepo.getNumPost(firebaseAuth.uid.toString()).asLiveData()
-    val postUser: LiveData<List<Post>> =
-        postRepo.getAllUserPost(firebaseAuth.uid.toString()).asLiveData()
+    //val numPost: LiveData<Int> = postRepo.getNumPost(firebaseAuth.uid.toString()).asLiveData()
+    //val postUser: LiveData<List<Post>> =
+    //  postRepo.getAllUserPost(firebaseAuth.uid.toString()).asLiveData()
 
     val deleteRemoteUserWorksInfo: LiveData<List<WorkInfo>>
     val logoutUserWorkInfo: LiveData<List<WorkInfo>>
@@ -231,10 +230,42 @@ class ProfileViewModel(
         }
     }
 
+    fun getUserPost() = liveData {
+        emit(Resource.Loading())
+        try {
+            emit(postRepo.getAllPostRemote(firebaseAuth.uid.toString()))
+        } catch (e: Exception) {
+            when (e) {
+                is StorageException -> Resource.Failure(e)
+                is DatabaseException -> Resource.Failure(e)
+            }
+        }
+
+    }
+
     fun deletePost(post: Post) {
+        deletePostRemote(post.postTimestamp.toString())
         viewModelScope.launch {
             postRepo.delete(post)
         }
+    }
+
+    private fun deletePostRemote(timestamp: String) {
+        val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        val deletePostRequest =
+            OneTimeWorkRequestBuilder<DeleteUserPost>().setConstraints(constraint).setInputData(
+                workDataOf("uid" to firebaseAuth.uid, "timestamp" to timestamp)
+            ).setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            ).build()
+
+        workManager.beginUniqueWork(
+            "deletePostRemote",
+            ExistingWorkPolicy.REPLACE,
+            deletePostRequest
+        ).enqueue()
     }
 
     fun deleteRegistration() = liveData(Dispatchers.IO) {
@@ -283,12 +314,24 @@ class ProfileViewModel(
             ).build()
     }
 
+    private fun deleteAllPostRemote(): OneTimeWorkRequest {
+        val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        return OneTimeWorkRequestBuilder<DeleteAllPostRemote>().setConstraints(constraint)
+            .setInputData(workDataOf("uid" to firebaseAuth.uid.toString()))
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            ).build()
+    }
+
     fun deleteUserRemoteWork() {
         workManager.beginUniqueWork(
             "DeleteRemoteUserWorker",
             ExistingWorkPolicy.REPLACE,
             deleteUserRemote()
         )
+            .then(deleteAllPostRemote())
             .then(deleteUserLocal()).enqueue()
     }
 
