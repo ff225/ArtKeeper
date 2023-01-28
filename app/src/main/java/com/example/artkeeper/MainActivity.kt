@@ -9,6 +9,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.navigation.NavigationBarView
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -24,10 +25,16 @@ class MainActivity : AppCompatActivity() {
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+
         navController = navHostFragment.navController
 
-
+        val itemSelectedListener = NavigationBarView.OnItemReselectedListener { }
+        findViewById<NavigationBarView>(R.id.bottom_nav).setOnItemReselectedListener(
+            itemSelectedListener
+        )
         findViewById<BottomNavigationView>(R.id.bottom_nav).setupWithNavController(navController)
+
+
         appBarConfiguration = AppBarConfiguration(
             setOf(
                 R.id.mainFragment,
@@ -37,6 +44,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.registrationFragment
             )
         )
+
+
         setupActionBarWithNavController(
             navController, appBarConfiguration
         )
