@@ -288,6 +288,7 @@ class ProfileViewModel(
 
     fun deleteUserLocalWork() {
         reset()
+        workManager.cancelUniqueWork("getLatestPostWorker")
         workManager
             .beginUniqueWork(
                 "DeleteLocalAccountUserWorker",
@@ -319,6 +320,7 @@ class ProfileViewModel(
     }
 
     fun deleteUserRemoteWork() {
+        workManager.cancelUniqueWork("getLatestPostWorker")
         workManager.beginUniqueWork(
             "DeleteRemoteUserWorker",
             ExistingWorkPolicy.REPLACE,
