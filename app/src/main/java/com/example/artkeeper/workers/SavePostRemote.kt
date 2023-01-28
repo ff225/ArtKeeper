@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.artkeeper.data.model.PostRemote
+import com.example.artkeeper.data.model.PostToRemote
 import com.example.artkeeper.utils.ArtKeeper
 
 class SavePostRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
@@ -18,7 +18,7 @@ class SavePostRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
         val imageName = imagePath!!.split("/").let {
             it[it.lastIndex]
         }
-        val post = PostRemote(
+        val post = PostToRemote(
             imageName,
             inputData.getString("childName"),
             inputData.getString("description"),
@@ -29,9 +29,9 @@ class SavePostRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
         val savePost = postRepo.insertRemote(uid, post)
 
         return if (saveImage.isSuccess)
-            if (savePost.isSuccess)
+            if (savePost.isSuccess) {
                 Result.success()
-            else {
+            } else {
                 savePost.onFailure {
                     Log.d(TAG, it.message.toString())
                 }

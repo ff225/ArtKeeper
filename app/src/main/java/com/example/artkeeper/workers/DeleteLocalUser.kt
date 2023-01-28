@@ -35,7 +35,7 @@ class DeleteLocalUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(
                 )
             )
 
-            postRepository.deleteAll(uid)
+            postRepository.deleteAll()
 
 
             Result.success(workDataOf("value" to true))

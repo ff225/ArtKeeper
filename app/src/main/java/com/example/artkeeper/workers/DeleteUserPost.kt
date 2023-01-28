@@ -12,8 +12,9 @@ class DeleteUserPost(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
     override suspend fun doWork(): Result {
         return try {
             val uid = inputData.getString("uid")!!
-            val timestamp = inputData.getString("timestamp")!!
-            postRepo.deleteRemote(uid, timestamp)
+            val idPost = inputData.getString("idPost")!!
+            val imagePath = inputData.getString("imagePath")!!
+            postRepo.deleteRemote(uid, idPost, imagePath)
             Result.success()
         } catch (e: Exception) {
             Log.d("DeleteUserPost", e.message.toString())
