@@ -11,13 +11,15 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.artkeeper.R
-import com.example.artkeeper.data.model.PostRemote
+import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.databinding.PostItemBinding
 import java.text.DateFormat
 import java.util.*
 
-class PostAdapter :
-    ListAdapter<PostRemote, PostAdapter.PostItemViewHolder>(PostRemoteDiffCallback()) {
+class PostAdapter(
+    private val clickListener: PostListener
+) :
+    ListAdapter<Post, PostAdapter.PostItemViewHolder>(PostRemoteDiffCallback()) {
 
     var nickName: String = ""
         set(value) {
@@ -27,7 +29,11 @@ class PostAdapter :
 
     class PostItemViewHolder(private val binding: PostItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(post: PostRemote, nickName: String) {
+        fun bind(
+            post: Post,
+            nickName: String,
+            clickListener: PostListener
+        ) {
 
             binding.nickNameItem.text = nickName
             binding.childNameItem.apply {
@@ -50,7 +56,7 @@ class PostAdapter :
             }
             binding.timestampPostItem.text =
                 DateFormat.getDateInstance(DateFormat.SHORT)
-                    .format(Date(post.postTimestamp.toLong()))
+                    .format(Date(post.timestamp.toLong()))
 
             Glide.with(binding.photoItem.context)
                 .load(post.imagePath.toUri())
@@ -58,6 +64,10 @@ class PostAdapter :
                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                 .error(R.drawable.ic_baseline_settings_24)
                 .into(binding.photoItem)
+
+            binding.textViewOptions.setOnClickListener {
+                clickListener.clickListener(post, adapterPosition)
+            }
 
         }
     }
@@ -74,17 +84,24 @@ class PostAdapter :
 
     override fun onBindViewHolder(holder: PostItemViewHolder, position: Int) {
 
-        holder.bind(getItem(position), nickName)
+        holder.bind(getItem(position), nickName, clickListener)
 
     }
 
+    class PostListener(val clickListener: (post: Post, position: Int) -> Unit)
 
-    class PostRemoteDiffCallback : DiffUtil.ItemCallback<PostRemote>() {
-        override fun areItemsTheSame(oldItem: PostRemote, newItem: PostRemote): Boolean {
-            return oldItem.postTimestamp == newItem.postTimestamp
+    class PostRemoteDiffCallback : DiffUtil.ItemCallback<Post>() {
+        override fun areItemsTheSame(
+            oldItem: Post,
+            newItem: Post
+        ): Boolean {
+            return oldItem.timestamp == newItem.timestamp
         }
 
-        override fun areContentsTheSame(oldItem: PostRemote, newItem: PostRemote): Boolean {
+        override fun areContentsTheSame(
+            oldItem: Post,
+            newItem: Post
+        ): Boolean {
             return oldItem == newItem
         }
 
