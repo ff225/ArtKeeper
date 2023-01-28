@@ -13,8 +13,6 @@ import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.example.artkeeper.utils.Resource
 import com.example.artkeeper.workers.*
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseException
-import com.google.firebase.storage.StorageException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -39,9 +37,9 @@ class ProfileViewModel(
 
     val user: LiveData<User> = _user
     val image: Uri? = firebaseAuth.currentUser?.photoUrl
-    //val numPost: LiveData<Int> = postRepo.getNumPost(firebaseAuth.uid.toString()).asLiveData()
-    //val postUser: LiveData<List<Post>> =
-    //  postRepo.getAllUserPost(firebaseAuth.uid.toString()).asLiveData()
+    val numPost: LiveData<Int> = postRepo.getNumPost().asLiveData()
+    val postUser: LiveData<List<Post>> =
+        postRepo.getAllUserPost().asLiveData()
 
     val deleteRemoteUserWorksInfo: LiveData<List<WorkInfo>>
     val logoutUserWorkInfo: LiveData<List<WorkInfo>>
@@ -53,6 +51,13 @@ class ProfileViewModel(
 
         logoutUserWorkInfo =
             workManager.getWorkInfosForUniqueWorkLiveData("DeleteLocalAccountUserWorker")
+        Log.d(TAG, numPost.value.toString())
+
+
+        viewModelScope.launch {
+            if (postRepo.checkTableExist() == 0)
+                postRepo.getAllPostRemote(firebaseAuth.uid.toString())
+        }
         Log.d(TAG, "${_nChild}, ${_nameChild.size} ")
         Log.d(TAG, "in init, image profile path: ${firebaseAuth.currentUser?.photoUrl.toString()}")
     }
@@ -169,15 +174,11 @@ class ProfileViewModel(
             "nameChild" to user.nameChild?.toTypedArray()
         )
 
-    private fun updateNicknamePost(nickName: String) = viewModelScope.launch {
-        postRepo.updateNicknamePost(nickName, firebaseAuth.uid!!)
-    }
-
     fun updateUserInfo(prevNickname: String) = liveData {
         emit(Resource.Loading())
         userRepo.checkNicknameRemote(_nickName).onSuccess {
             updateUserInfoWork()
-            updateNicknamePost(_nickName)
+            //updateNicknamePost(_nickName)
             emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth.uid.toString()))))
         }.onFailure {
             if (_nickName != prevNickname)
@@ -230,31 +231,23 @@ class ProfileViewModel(
         }
     }
 
-    fun getUserPost() = liveData {
-        emit(Resource.Loading())
-        try {
-            emit(postRepo.getAllPostRemote(firebaseAuth.uid.toString()))
-        } catch (e: Exception) {
-            when (e) {
-                is StorageException -> Resource.Failure(e)
-                is DatabaseException -> Resource.Failure(e)
-            }
-        }
-
-    }
 
     fun deletePost(post: Post) {
-        deletePostRemote(post.postTimestamp.toString())
+        deletePostRemote(post.idPost, post.imagePath)
         viewModelScope.launch {
             postRepo.delete(post)
         }
     }
 
-    private fun deletePostRemote(timestamp: String) {
+    private fun deletePostRemote(idPost: String, imagePath: String) {
         val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         val deletePostRequest =
             OneTimeWorkRequestBuilder<DeleteUserPost>().setConstraints(constraint).setInputData(
-                workDataOf("uid" to firebaseAuth.uid, "timestamp" to timestamp)
+                workDataOf(
+                    "uid" to firebaseAuth.uid,
+                    "idPost" to idPost,
+                    "imagePath" to imagePath
+                )
             ).setBackoffCriteria(
                 BackoffPolicy.LINEAR,
                 OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
