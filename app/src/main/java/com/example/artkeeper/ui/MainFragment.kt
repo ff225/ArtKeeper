@@ -24,8 +24,8 @@ import com.example.artkeeper.databinding.FragmentMainBinding
 import com.example.artkeeper.presentation.MainViewModel
 import com.example.artkeeper.presentation.MainViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.FirebaseAuth
 import java.io.File
 
 class MainFragment : Fragment() {
@@ -49,7 +49,7 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        if (FirebaseAuth.getInstance().currentUser == null) {
+        if (firebaseAuth.currentUser == null) {
             findNavController().navigate(R.id.profile)
         }
         activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = false

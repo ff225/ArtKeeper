@@ -13,6 +13,7 @@ class PostLocalDataSource(
     private val postDao: PostDao,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
+
     suspend fun insert(post: Post) = withContext(dispatcher) {
         postDao.insert(post)
     }
@@ -21,22 +22,23 @@ class PostLocalDataSource(
         postDao.update(post)
     }
 
+    suspend fun checkTableExist(): Int = withContext(dispatcher) {
+        async { postDao.checkTableExist() }
+    }.await()
+
     suspend fun delete(post: Post) = withContext(dispatcher) {
         postDao.delete(post)
     }
 
-    suspend fun deleteAll(uid: String) =
+    suspend fun deleteAll() =
         withContext(dispatcher) {
             async {
-                postDao.deleteAll(
-                    uid
-                )
+                postDao.deleteAll()
             }
         }.await()
 
-    fun getNumPost(uid: String): Flow<Int> = postDao.getNumPost(uid)
+    fun getNumPost(): Flow<Int> = postDao.getNumPost()
 
-    fun getAllUserPost(uid: String): Flow<List<Post>> = postDao.getUserPosts(uid)
-    fun getAllPost(): Flow<List<Post>> = postDao.getPosts()
+    fun getAllUserPost(): Flow<List<Post>> = postDao.getUserPosts()
 
 }

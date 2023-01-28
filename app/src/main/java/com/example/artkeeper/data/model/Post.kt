@@ -1,33 +1,36 @@
 package com.example.artkeeper.data.model
 
-import android.net.Uri
 import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
-import androidx.room.ForeignKey.CASCADE
 import androidx.room.PrimaryKey
 
+// https://medium.com/androiddevelopers/7-pro-tips-for-room-fbadea4bfbd1#3e94
+
 @Entity(
-    tableName = "post",
-    foreignKeys = [ForeignKey(
-        entity = User::class,
-        parentColumns = ["uid"],
-        childColumns = ["uid_user"],
-        onDelete = CASCADE,
-        onUpdate = CASCADE
-    )]
+    tableName = "post_user",
 )
 data class Post(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    @NonNull @ColumnInfo(name = "uid_user") val uidUser: String,
-    @NonNull @ColumnInfo(name = "nickname") val nickName: String,
-    @NonNull @ColumnInfo(name = "image_path") val imagePath: Uri,
-    @NonNull @ColumnInfo(name = "number_of_likes") val nLike: Int = 0,
+    @ColumnInfo(name = "id_post") val idPost: String,
+    @NonNull @ColumnInfo(name = "image_path") val imagePath: String,
     @ColumnInfo(name = "sketched_by") val sketchedBy: String?,
     @ColumnInfo(name = "description") val description: String?,
-    @NonNull @ColumnInfo(name = "is_uploaded") val isUploaded: Boolean = false,
-    @NonNull @ColumnInfo(name = "post_timestamp") val postTimestamp: Long,
+    @NonNull @ColumnInfo(name = "post_timestamp") val timestamp: String
 )
 
-// https://medium.com/androiddevelopers/7-pro-tips-for-room-fbadea4bfbd1#3e94
+data class PostToRemote(
+    var imagePath: String = "",
+    var sketchedBy: String? = null,
+    var description: String? = null,
+    var postTimestamp: String = ""
+)
+
+
+data class PostFromRemote(
+    var id: String = "",
+    var imagePath: String = "",
+    var sketchedBy: String? = null,
+    var description: String? = null,
+    var postTimestamp: String = ""
+)

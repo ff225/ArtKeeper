@@ -3,9 +3,9 @@ package com.example.artkeeper.data.datasource
 import android.util.Log
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.data.model.UserOnline
+import com.example.artkeeper.utils.Constants.databaseRef
 import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
-import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
@@ -13,9 +13,6 @@ import kotlinx.coroutines.withContext
 
 class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatchers.IO) {
     private val TAG = javaClass.simpleName
-
-    private val databaseRef =
-        FirebaseDatabase.getInstance("https://artkeeper-01-default-rtdb.europe-west1.firebasedatabase.app/")
 
     private val dbUser = databaseRef.getReference("users")
     private val dbNickname = databaseRef.getReference("nickname")
