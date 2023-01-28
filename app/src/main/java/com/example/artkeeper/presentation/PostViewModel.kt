@@ -77,7 +77,7 @@ class PostViewModel(
                 BackoffPolicy.LINEAR,
                 OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
                 TimeUnit.MILLISECONDS
-            ).build()
+            ).addTag("getLatestPostWorker").build()
     }
 
     private fun savePostWork() {
