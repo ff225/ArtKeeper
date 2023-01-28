@@ -3,20 +3,17 @@ package com.example.artkeeper.presentation
 import android.net.Uri
 import androidx.lifecycle.*
 import androidx.work.*
-import com.example.artkeeper.data.model.Post
-import com.example.artkeeper.data.model.PostRemote
+import com.example.artkeeper.data.model.PostToRemote
 import com.example.artkeeper.data.model.User
-import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
 import com.example.artkeeper.utils.Constants.firebaseAuth
+import com.example.artkeeper.workers.GetLatestPost
 import com.example.artkeeper.workers.SavePostRemote
-import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class PostViewModel(
-    private val repo: PostRepository,
-    private val userRepo: UserRepository,
+    userRepo: UserRepository,
     private val workManager: WorkManager
 ) :
     ViewModel() {
@@ -58,28 +55,29 @@ class PostViewModel(
         return true
     }
 
-    private fun createPost(): Post {
-        return Post(
-            0,
-            uid,
-            user.value!!.nickName,
-            _imageUri.value!!,
-            0,
-            _childName.value,
-            _description.value,
-            true,
-            _timestamp
-        )
-    }
-
-    private fun createPostRemote(): PostRemote {
+    private fun createPostRemote(): PostToRemote {
         _timestamp = getTimestamp()
-        return PostRemote(
+        return PostToRemote(
             _imageUri.value.toString(),
             _childName.value,
             _description.value,
             _timestamp.toString()
         )
+    }
+
+    private fun getLatestPost(): OneTimeWorkRequest {
+        val constraint = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        return OneTimeWorkRequestBuilder<GetLatestPost>().setInputData(workDataOf("uid" to uid))
+            .setConstraints(constraint)
+            .setInitialDelay(30, TimeUnit.SECONDS)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            ).build()
     }
 
     private fun savePostWork() {
@@ -108,15 +106,15 @@ class PostViewModel(
             "savePostRequest",
             ExistingWorkPolicy.APPEND_OR_REPLACE,
             savePostRequest
-        )
+        ).then(getLatestPost())
             .enqueue()
     }
 
     fun insert() {
         savePostWork()
-        viewModelScope.launch {
+        /*viewModelScope.launch {
             repo.insert(createPost())
-        }
+        }*/
     }
 
     private fun getTimestamp(): Long {
@@ -128,11 +126,10 @@ class PostViewModel(
 }
 
 class PostViewModelFactory(
-    private val postRepo: PostRepository,
     private val userRepo: UserRepository,
     private val workManager: WorkManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return PostViewModel(postRepo, userRepo, workManager) as T
+        return PostViewModel(userRepo, workManager) as T
     }
 }
