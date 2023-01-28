@@ -2,12 +2,13 @@ package com.example.artkeeper.data.datasource
 
 import android.net.Uri
 import android.util.Log
-import com.example.artkeeper.data.model.PostRemote
+import com.example.artkeeper.data.model.Post
+import com.example.artkeeper.data.model.PostFromRemote
+import com.example.artkeeper.data.model.PostToRemote
 import com.example.artkeeper.utils.Constants.databaseRef
-import com.example.artkeeper.utils.Constants.firebaseAuth
-import com.example.artkeeper.utils.Resource
 import com.google.firebase.database.DatabaseException
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineDispatcher
@@ -20,7 +21,7 @@ class PostRemoteDataSource(
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     private val TAG = javaClass.simpleName
-    private val firebaseUid = firebaseAuth.uid
+
     private val dbPost = databaseRef.getReference("post")
     private val storageRef = Firebase.storage.reference
 
@@ -45,7 +46,7 @@ class PostRemoteDataSource(
         }
     }
 
-    suspend fun insertPost(uid: String, post: PostRemote): Result<Unit> {
+    suspend fun insertPost(uid: String, post: PostToRemote): Result<Unit> {
         return try {
             dbPost.child(uid).push().setValue(post).await()
             Result.success(Unit)
@@ -59,17 +60,20 @@ class PostRemoteDataSource(
 
     }
 
-    suspend fun getAllPostRemote(uid: String): Resource<List<PostRemote>> {
 
-        val postList = mutableListOf<PostRemote>()
+    suspend fun getAllPostRemote(uid: String): Result<List<PostFromRemote>> {
+
+        val postList = mutableListOf<PostFromRemote>()
         val posts = dbPost.child(uid).get().await()
         for (post in posts.children) {
-            post.getValue(PostRemote::class.java).let {
+            post.getValue(PostFromRemote::class.java).let {
                 it?.imagePath =
                     storageRef.child("images/$uid/${it?.imagePath}").downloadUrl.await()
                         .toString()
+
                 postList.add(
-                    PostRemote(
+                    PostFromRemote(
+                        post.key.toString(),
                         it!!.imagePath,
                         it.sketchedBy,
                         it.description,
@@ -78,18 +82,10 @@ class PostRemoteDataSource(
                 )
             }
         }
-        //return Result.success(postList)
-        return Resource.Success(postList)
-        /* } catch (e: Exception) {
-             when (e) {
-                 is DatabaseException -> Resource.Failure() //Result.failure(Throwable(e.cause!!))
-                 is StorageException -> Result.failure(Throwable(e.cause!!))
-                 else -> Result.failure(Throwable("Impossibile scaricare i post..."))
-             }
-         }*/
+        return Result.success(postList.asReversed())
     }
 
-    // TODO: invece di fare la query posts, utilizzerò la lista che ho scaricato per visualizzare i post
+
     suspend fun deleteAllRemote(uid: String): Result<Unit> {
 
         return try {
@@ -117,15 +113,16 @@ class PostRemoteDataSource(
         }
     }
 
-    /*
-        TODO:
-         - per questa funzione ha senso passare direttamente l'oggetto che stiamo visualizzando.
-           Quindi è necessario creare prima una funzione che scarichi tutti i post
-     */
 
-    suspend fun deletePostRemote(uid: String, timestamp: String): Result<Unit> {
+    suspend fun deletePostRemote(
+        uid: String,
+        idPostRemote: String,
+        imagePath: String
+    ): Result<Unit> {
         return try {
-            val post = dbPost.child(uid).get().await()
+            Log.d(TAG, imagePath)
+            dbPost.child(uid).child(idPostRemote).removeValue().await()
+            FirebaseStorage.getInstance().getReferenceFromUrl(imagePath).delete().await()
             Result.success(Unit)
         } catch (e: Exception) {
             when (e) {
@@ -134,5 +131,28 @@ class PostRemoteDataSource(
                 else -> Result.failure(Throwable("Impossibile cancellare il post"))
             }
         }
+    }
+
+    suspend fun getLatestPost(uid: String): Post {
+
+        var postRetrieved: Post = Post(0, "", "", "", "", "")
+        val postFromRemote =
+            dbPost.child(uid).limitToLast(1).get().await()
+        for (post in postFromRemote.children) {
+            post.getValue(PostFromRemote::class.java).let {
+                it?.imagePath =
+                    storageRef.child("images/$uid/${it?.imagePath}").downloadUrl.await()
+                        .toString()
+                postRetrieved = Post(
+                    0,
+                    it!!.id,
+                    it.imagePath,
+                    it.sketchedBy,
+                    it.description,
+                    it.postTimestamp
+                )
+            }
+        }
+        return postRetrieved
     }
 }
