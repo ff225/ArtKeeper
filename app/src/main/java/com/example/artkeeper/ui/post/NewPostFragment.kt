@@ -50,7 +50,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
     private val viewModel: PostViewModel by viewModels {
         PostViewModelFactory(
-            (requireActivity().application as ArtKeeper).postRepository,
             (requireActivity().application as ArtKeeper).userRepository,
             (requireActivity().application as ArtKeeper).workManager
         )
