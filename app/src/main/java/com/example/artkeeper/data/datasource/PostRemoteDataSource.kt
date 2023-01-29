@@ -138,20 +138,23 @@ class PostRemoteDataSource(
         var postRetrieved: Post = Post(0, "", "", "", "", "")
         val postFromRemote =
             dbPost.child(uid).limitToLast(1).get().await()
+        Log.d(TAG, postFromRemote.childrenCount.toString())
         for (post in postFromRemote.children) {
             post.getValue(PostFromRemote::class.java).let {
+                Log.d(TAG, post.toString())
                 it?.imagePath =
                     storageRef.child("images/$uid/${it?.imagePath}").downloadUrl.await()
                         .toString()
                 postRetrieved = Post(
                     0,
-                    it!!.id,
-                    it.imagePath,
+                    post.key.toString(),
+                    it!!.imagePath,
                     it.sketchedBy,
                     it.description,
                     it.postTimestamp
                 )
             }
+            break
         }
         return postRetrieved
     }
