@@ -72,7 +72,7 @@ class PostViewModel(
 
         return OneTimeWorkRequestBuilder<GetLatestPost>().setInputData(workDataOf("uid" to uid))
             .setConstraints(constraint)
-            .setInitialDelay(30, TimeUnit.SECONDS)
+            .setInitialDelay(5, TimeUnit.SECONDS)
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
                 OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
