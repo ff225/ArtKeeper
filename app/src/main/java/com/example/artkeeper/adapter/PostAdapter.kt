@@ -34,41 +34,42 @@ class PostAdapter(
             nickName: String,
             clickListener: PostListener
         ) {
+            binding.apply {
+                nickNameItem.text = nickName
+                /*
+                childNameItem.apply {
+                    if (post.sketchedBy != null)
+                        text = post.sketchedBy
+                    else
+                        visibility = View.GONE
+                }*/
+                childNameItem.apply {
+                    if (post.sketchedBy.isNullOrEmpty() || post.sketchedBy.equals("null"))
+                        visibility = View.GONE
+                    else
+                        text = resources.getString(R.string.sketched_by, post.sketchedBy)
+                }
+                descriptionItem.apply {
+                    if (post.description.isNullOrEmpty())
+                        visibility = View.GONE
+                    else
+                        text = post.description
+                }
+                timestampPostItem.text =
+                    DateFormat.getDateInstance(DateFormat.SHORT)
+                        .format(Date(post.timestamp.toLong()))
 
-            binding.nickNameItem.text = nickName
-            binding.childNameItem.apply {
-                if (post.sketchedBy != null)
-                    text = post.sketchedBy
-                else
-                    visibility = View.GONE
-            }
-            binding.childNameItem.apply {
-                if (post.sketchedBy.isNullOrEmpty() || post.sketchedBy.equals("null"))
-                    visibility = View.GONE
-                else
-                    text = resources.getString(R.string.sketched_by, post.sketchedBy)
-            }
-            binding.descriptionItem.apply {
-                if (post.description.isNullOrEmpty())
-                    visibility = View.GONE
-                else
-                    text = post.description
-            }
-            binding.timestampPostItem.text =
-                DateFormat.getDateInstance(DateFormat.SHORT)
-                    .format(Date(post.timestamp.toLong()))
+                Glide.with(photoItem.context)
+                    .load(post.imagePath.toUri())
+                    .format(DecodeFormat.PREFER_RGB_565)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                    .error(R.drawable.ic_baseline_settings_24)
+                    .into(photoItem)
 
-            Glide.with(binding.photoItem.context)
-                .load(post.imagePath.toUri())
-                .format(DecodeFormat.PREFER_RGB_565)
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                .error(R.drawable.ic_baseline_settings_24)
-                .into(binding.photoItem)
-
-            binding.textViewOptions.setOnClickListener {
-                clickListener.clickListener(post, adapterPosition)
+                textViewOptions.setOnClickListener {
+                    clickListener.clickListener(post, adapterPosition)
+                }
             }
-
         }
     }
 

@@ -233,6 +233,8 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             setChildName(binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text as String?)
             if (checkPost()) {
                 insert()
+                Toast.makeText(requireContext(), "Condivisione del post...", Toast.LENGTH_LONG)
+                    .show()
                 findNavController().navigate(R.id.action_move_to_home)
             } else
                 Toast.makeText(
