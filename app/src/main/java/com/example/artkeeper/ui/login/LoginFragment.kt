@@ -48,7 +48,7 @@ class LoginFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (FirebaseAuth.getInstance().currentUser != null)
-            findNavController().navigate(R.id.action_loginFragment_to_profileFragment)
+            findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToProfileFragment())
         else
             activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
 
@@ -102,6 +102,7 @@ class LoginFragment : Fragment() {
 
         val signInIntent = AuthUI.getInstance()
             .createSignInIntentBuilder()
+            .setTheme(R.style.AppTheme)
             .setIsSmartLockEnabled(false)
             .setAvailableProviders(providers)
             .build()
@@ -123,7 +124,8 @@ class LoginFragment : Fragment() {
                         TAG, "in userIsRegistered, ${result.data}"
                     )
                     binding.progressBarLogin.visibility = View.GONE
-                    findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+                    findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToProfileFragment())
+                    //findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
                 }
                 is Resource.Failure -> {
                     Log.e(TAG, "in userIsRegistered, ${result.exception.message.toString()}")
