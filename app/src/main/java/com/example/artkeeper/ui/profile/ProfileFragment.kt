@@ -4,11 +4,10 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.PopupMenu
-import androidx.core.view.get
+import androidx.core.app.ShareCompat
+import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
@@ -20,6 +19,8 @@ import com.example.artkeeper.databinding.FragmentProfileBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.ShareAction
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 
 class ProfileFragment : Fragment() {
@@ -43,6 +44,7 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
+        activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = false
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -50,37 +52,36 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         recyclerView = binding.recyclerViewProfile
 
-        val adapter = PostAdapter(PostAdapter.PostListener { post, position ->
+        val adapter = PostAdapter(PostAdapter.PostListener { post, position, option ->
             Log.d(TAG, "postId: ${post.id}")
             Log.d(TAG, "position: $position")
 
-            val popupMenu = PopupMenu(
-                requireContext(),
-                recyclerView[position].findViewById(R.id.textViewOptions)
-            )
-            popupMenu.inflate(R.menu.options_menu_profile)
-
-            popupMenu.setOnMenuItemClickListener(object : PopupMenu.OnMenuItemClickListener {
-                override fun onMenuItemClick(item: MenuItem?): Boolean {
-                    when (item?.itemId) {
-                        R.id.cancel_button -> {
-
-                            viewModel.deletePost(post)
-                            recyclerView.adapter!!.notifyItemRemoved(position)
-
-                            return true
+            if (option.equals("remove")) {
+                viewModel.deletePost(post)
+                recyclerView.adapter!!.notifyItemRemoved(position)
+            }
+            if (option.equals("share")) {
+                val path = ShareAction().getTmpFileUri(requireContext(), post.imagePath)
+                val shareIntent =
+                    ShareCompat.IntentBuilder(requireActivity()).apply {
+                        setType("image/jpg")
+                        setText(post.description.toString())
+                        post.sketchedBy?.let {
+                            setText("Disegnato da: $it \n${post.description.toString()}")
                         }
-                    }
-                    return false
-                }
-            })
-            popupMenu.show()
+                        addStream(path)
+
+                    }.createChooserIntent()
+                startActivity(shareIntent)
+            }
+
         })
 
         recyclerView.adapter = adapter
+        adapter.menu = R.menu.options_menu_profile
 
         viewModel.user.observe(viewLifecycleOwner) {
-            val imageUri: Uri = viewModel.image!!
+            val imageUri: Uri = viewModel.userPhoto!!
             Glide.with(binding.imageProfile.context)
                 .load(imageUri)
                 .into(binding.imageProfile)
@@ -95,6 +96,7 @@ class ProfileFragment : Fragment() {
         }
 
         viewModel.postUser.observe(viewLifecycleOwner) { post ->
+            Log.d(TAG, post.size.toString())
             post.let {
                 adapter.submitList(post)
             }
