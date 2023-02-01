@@ -36,7 +36,7 @@ class ProfileViewModel(
         userRepo.getUserLocal(firebaseAuth.uid.toString()).asLiveData() as MutableLiveData<User>
 
     val user: LiveData<User> = _user
-    val image: Uri? = firebaseAuth.currentUser?.photoUrl
+    val userPhoto: Uri? = firebaseAuth.currentUser?.photoUrl
     val numPost: LiveData<Int> = postRepo.getNumPost().asLiveData()
     val postUser: LiveData<List<Post>> =
         postRepo.getAllUserPost().asLiveData()
@@ -55,8 +55,11 @@ class ProfileViewModel(
 
 
         viewModelScope.launch {
+
             if (postRepo.checkTableExist() == 0)
-                postRepo.getAllPostRemote(firebaseAuth.uid.toString())
+                postRepo.getAllPostUserRemote(firebaseAuth.uid.toString())
+            //userRepo.insertNicknames()
+
         }
         Log.d(TAG, "${_nChild}, ${_nameChild.size} ")
         Log.d(TAG, "in init, image profile path: ${firebaseAuth.currentUser?.photoUrl.toString()}")
@@ -83,6 +86,7 @@ class ProfileViewModel(
             uid,
             _name,
             _lastName,
+            userPhoto.toString(),
             _nickName,
             _nChild,
             _nameChild
@@ -93,6 +97,7 @@ class ProfileViewModel(
         uo.uid!!,
         uo.firstName!!,
         uo.lastName!!,
+        uo.photoUser!!,
         uo.nickName!!,
         uo.nChild!!,
         uo.nameChild ?: listOf()
@@ -101,7 +106,7 @@ class ProfileViewModel(
     fun checkUser() = liveData {
         emit(Resource.Loading())
         userRepo.checkUserRemote().onSuccess {
-            insertUser(createUserFromRemote(getUserRemote()))
+            insertUser(createUserFromRemote(getUserRemote(firebaseAuth.uid.toString())))
             emit(Resource.Success("Utente registrato"))
         }.onFailure {
             emit(Resource.Failure(Exception(it.message)))
@@ -112,7 +117,7 @@ class ProfileViewModel(
     Le chiamate suspend vanno utilizzate quando va emesso un solo valore.
     Non vanno usate, per es., quando vogliamo caricare i post.
      */
-    private suspend fun getUserRemote() = userRepo.getUserRemote().getOrThrow()
+    private suspend fun getUserRemote(uid: String) = userRepo.getUserRemote(uid).getOrThrow()
 
     fun addChild(name: String) {
         //reset()
@@ -170,6 +175,7 @@ class ProfileViewModel(
             "nickname" to user.nickName,
             "firstName" to user.firstName,
             "lastName" to user.lastName,
+            "photoUser" to user.photo,
             "nChild" to user.nChild,
             "nameChild" to user.nameChild?.toTypedArray()
         )
