@@ -1,6 +1,7 @@
 package com.example.artkeeper.data.datasource
 
 import android.util.Log
+import com.example.artkeeper.data.model.Nickname
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.data.model.UserOnline
 import com.example.artkeeper.utils.Constants.databaseRef
@@ -49,32 +50,54 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
         }
     }
 
+    suspend fun getAllNicknames(): Result<List<Nickname>> {
+        return withContext(dispatcher) {
+            val querySnapshot = dbNickname.get().await()
+            val nicknamesList = mutableListOf<Nickname>()
+
+            for (nickName in querySnapshot.children) {
+                Log.d(TAG, nickName.value.toString())
+                nickName.let {
+                    nicknamesList.add(Nickname(nickName.key!!, nickName.value.toString()))
+                }
+            }
+            Result.success(nicknamesList)
+        }
+    }
 
     /**
      * Se l'utente è presente torna l'oggetto da salvare su Room db.
      */
     @Suppress("UNCHECKED_CAST")
-    suspend fun getUser(): Result<UserOnline> {
+    suspend fun getUser(uid: String): Result<UserOnline> {
 
         return withContext(dispatcher) {
 
             val querySnapshot =
-                dbUser.orderByKey().equalTo(firebaseAuth.uid).get()
+                dbUser.orderByKey().equalTo(uid).get()
                     .await()
 
-            val user =
-                querySnapshot.child(firebaseAuth.uid.toString()).value!! as HashMap<String, *>
-            Log.d(TAG, "in getUser, $user")
-            return@withContext Result.success(
-                UserOnline(
-                    user["firstName"].toString(),
-                    user["lastName"].toString(),
-                    user["uid"].toString(),
-                    user["nickName"].toString(),
-                    user["nchild"].toString().toInt(),
-                    user["name_child"] as List<String>?
+            try {
+
+
+                val user =
+                    querySnapshot.child(uid).value!! as HashMap<String, *>
+                Log.d(TAG, "in getUser, $user")
+                return@withContext Result.success(
+                    UserOnline(
+                        user["firstName"].toString(),
+                        user["lastName"].toString(),
+                        user["photo"].toString(),
+                        user["uid"].toString(),
+                        user["nickName"].toString(),
+                        user["nchild"].toString().toInt(),
+                        user["name_child"] as List<String>?
+                    )
                 )
-            )
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+
         }
     }
 
