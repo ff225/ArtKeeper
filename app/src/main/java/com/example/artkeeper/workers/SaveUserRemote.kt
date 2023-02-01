@@ -15,6 +15,7 @@ class SaveUserRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
         val nickname = inputData.getString("nickname")
         val firstName = inputData.getString("firstName")
         val lastname = inputData.getString("lastName")
+        val photoUser = inputData.getString("photoUser")
         val nChild = inputData.getInt("nChild", 0)
         val nameChild = inputData.getStringArray("nameChild")?.toList()
 
@@ -23,6 +24,7 @@ class SaveUserRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
                 uid!!,
                 firstName!!,
                 lastname!!,
+                photoUser!!,
                 nickname!!,
                 nChild,
                 nameChild

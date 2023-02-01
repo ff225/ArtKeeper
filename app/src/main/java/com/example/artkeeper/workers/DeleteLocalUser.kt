@@ -21,6 +21,7 @@ class DeleteLocalUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(
             val nickname = inputData.getString("nickname")
             val firstName = inputData.getString("firstName")
             val lastname = inputData.getString("lastName")
+            val photoUser = inputData.getString("photoUser")
             val nChild = inputData.getInt("nChild", 0)
             val nameChild = inputData.getStringArray("nameChild")?.toList()
 
@@ -29,6 +30,7 @@ class DeleteLocalUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(
                     uid!!,
                     firstName!!,
                     lastname!!,
+                    photoUser!!,
                     nickname!!,
                     nChild,
                     nameChild
@@ -36,7 +38,7 @@ class DeleteLocalUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(
             )
 
             postRepository.deleteAll()
-
+            userRepository.deleteNicknames()
 
             Result.success(workDataOf("value" to true))
         } catch (e: Exception) {
