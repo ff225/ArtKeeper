@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/home"
+    app:launchSingleTop="true"
     app:startDestination="@id/mainFragment">
 
     <fragment
@@ -10,12 +11,24 @@
         android:name="com.example.artkeeper.ui.MainFragment"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_main">
-
         <action
             android:id="@+id/action_move_to_login"
-            app:destination="@+id/login"
+            app:destination="@+id/profile"
             app:popUpTo="@id/home"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_mainFragment_to_visitedUserProfileFragment"
+            app:destination="@id/visitedUserProfileFragment">
+            <argument
+                android:name="uid_user"
+                android:defaultValue="null"
+                app:argType="string" />
+        </action>
+
     </fragment>
+    <fragment
+        android:id="@+id/visitedUserProfileFragment"
+        android:name="com.example.artkeeper.ui.VisitedUserProfileFragment" />
+
 
 </navigation>
