@@ -33,7 +33,24 @@ class PostRepository(
         insert(postRemoteDataSource.getLatestPost(uid))
     }
 
-    suspend fun getAllPostRemote(uid: String) {
+    suspend fun getAllPostRemote(uid: String): Result<List<Post>> {
+        val postList = mutableListOf<Post>()
+        for (post in postRemoteDataSource.getAllPostRemote(uid).getOrThrow()) {
+            postList.add(
+                Post(
+                    0,
+                    post.id,
+                    post.imagePath,
+                    post.sketchedBy,
+                    post.description,
+                    post.postTimestamp
+                )
+            )
+        }
+        return Result.success(postList)
+    }
+
+    suspend fun getAllPostUserRemote(uid: String) {
         for (post in postRemoteDataSource.getAllPostRemote(uid).getOrThrow()) {
             insert(
                 Post(
