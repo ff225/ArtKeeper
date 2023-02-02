@@ -12,12 +12,15 @@
         tools:layout="@layout/fragment_profile">
         <action
             android:id="@+id/action_profileFragment_to_settingsFragment"
-            app:destination="@id/settingsFragment" />
+            app:destination="@id/settingsFragment"
+            app:enterAnim="@anim/fui_slide_in_right"
+            app:exitAnim="@anim/fui_slide_out_left" />
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.artkeeper.ui.profile.SettingsFragment"
         android:label="@string/settings"
+
         tools:layout="@layout/fragment_settings">
         <action
             android:id="@+id/action_logout_move_to_home"
@@ -27,7 +30,8 @@
             app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_settingsFragment_to_updateInfoFragment"
-            app:destination="@id/updateInfoFragment" />
+            app:destination="@id/updateInfoFragment"
+            app:enterAnim="@anim/fui_slide_in_right" />
     </fragment>
     <fragment
         android:id="@+id/updateInfoFragment"
@@ -46,17 +50,19 @@
         <action
             android:id="@+id/action_loginFragment_to_registrationFragment"
             app:destination="@id/registrationFragment"
+            app:enterAnim="@anim/fui_slide_in_right"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_loginFragment_to_mainFragment"
             app:destination="@+id/home"
             app:launchSingleTop="true"
-            app:popUpTo="@id/home"
+            app:popUpTo="@id/profile"
             app:popUpToInclusive="true" />
         <action
             android:id="@+id/action_loginFragment_to_profileFragment"
             app:destination="@id/profileFragment"
+            app:launchSingleTop="true"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
     </fragment>
@@ -69,7 +75,6 @@
             android:id="@+id/action_registrationFragment_to_home"
             app:destination="@+id/home"
             app:popUpTo="@id/profile"
-            app:popUpToInclusive="true"
-        />
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>
