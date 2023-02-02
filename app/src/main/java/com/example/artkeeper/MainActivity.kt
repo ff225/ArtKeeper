@@ -5,10 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.NavigationUI
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
 
 class MainActivity : AppCompatActivity() {
@@ -23,16 +22,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
 
         navController = navHostFragment.navController
+        
+        findViewById<NavigationBarView>(R.id.bottom_nav).apply {
+            navController.let {
+                NavigationUI.setupWithNavController(this, navController)
+            }
+            setOnItemSelectedListener { item ->
+                NavigationUI.onNavDestinationSelected(item, navController)
+                true
+            }
+            setOnItemReselectedListener {
 
-        val itemSelectedListener = NavigationBarView.OnItemReselectedListener { }
-        findViewById<NavigationBarView>(R.id.bottom_nav).setOnItemReselectedListener(
-            itemSelectedListener
-        )
-        findViewById<BottomNavigationView>(R.id.bottom_nav).setupWithNavController(navController)
+            }
+        }
 
 
         appBarConfiguration = AppBarConfiguration(
@@ -45,10 +52,7 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-
-        setupActionBarWithNavController(
-            navController, appBarConfiguration
-        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
 
     }
 
