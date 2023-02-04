@@ -28,7 +28,8 @@
     </fragment>
     <fragment
         android:id="@+id/visitedUserProfileFragment"
-        android:name="com.example.artkeeper.ui.VisitedUserProfileFragment" />
+        android:name="com.example.artkeeper.ui.VisitedUserProfileFragment"
+        android:label="@string/profile" />
 
 
 </navigation>
