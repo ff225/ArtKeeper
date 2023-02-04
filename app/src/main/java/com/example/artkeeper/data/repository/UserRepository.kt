@@ -23,8 +23,8 @@ class UserRepository(
     suspend fun addChildLocal(uid: String, nChild: Int, nameChild: List<String>) =
         userLocalDataSource.addChild(uid, nChild, nameChild)
 
-    fun getUserLocal(uid: String): Flow<User> =
-        userLocalDataSource.getUser(uid).distinctUntilChanged()
+    fun getUserLocal(uid: String): Flow<User>? =
+        userLocalDataSource.getUser(uid)?.distinctUntilChanged()
 
     suspend fun insertUserRemote(user: User) = userRemoteDataSource.insertUser(user)
 

@@ -33,9 +33,9 @@ class ProfileViewModel(
     private var _nChild: Int = -1
 
     private val _user: MutableLiveData<User> =
-        userRepo.getUserLocal(firebaseAuth.uid.toString()).asLiveData() as MutableLiveData<User>
+        userRepo.getUserLocal(firebaseAuth.uid.toString())?.asLiveData() as MutableLiveData<User>
 
-    val user: LiveData<User> = _user
+    val user: LiveData<User>? = _user
     val userPhoto: Uri? = firebaseAuth.currentUser?.photoUrl
     val numPost: LiveData<Int> = postRepo.getNumPost().asLiveData()
     val postUser: LiveData<List<Post>> =
@@ -56,7 +56,7 @@ class ProfileViewModel(
 
         viewModelScope.launch {
 
-            if (postRepo.checkTableExist() == 0)
+            //if (postRepo.checkTableExist() == 0)
                 postRepo.getAllPostUserRemote(firebaseAuth.uid.toString())
             //userRepo.insertNicknames()
 
@@ -294,6 +294,7 @@ class ProfileViewModel(
 
     fun deleteUserLocalWork() {
         reset()
+        workManager.cancelAllWorkByTag("savePostRequest")
         workManager.cancelUniqueWork("getLatestPostWorker")
         workManager
             .beginUniqueWork(
@@ -326,7 +327,7 @@ class ProfileViewModel(
     }
 
     fun deleteUserRemoteWork() {
-        workManager.cancelUniqueWork("getLatestPostWorker")
+        workManager.cancelAllWorkByTag("getLatestPostWorker")
         workManager.beginUniqueWork(
             "DeleteRemoteUserWorker",
             ExistingWorkPolicy.REPLACE,

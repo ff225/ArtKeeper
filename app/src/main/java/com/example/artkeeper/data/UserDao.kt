@@ -27,7 +27,7 @@ abstract class UserDao : BaseDao<User> {
     abstract suspend fun checkUser(uid: String): Boolean
 
     @Query("SELECT * FROM users WHERE uid=:uid")
-    abstract fun getUser(uid: String): Flow<User>
+    abstract fun getUser(uid: String): Flow<User>?
 
     @Query("SELECT * FROM nickname_users WHERE nickname LIKE '%' ||:queryString")
     abstract fun getNicknames(queryString: String): Flow<List<Nickname>>

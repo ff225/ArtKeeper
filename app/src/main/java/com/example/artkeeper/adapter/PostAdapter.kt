@@ -121,7 +121,8 @@ class PostAdapter(
             oldItem: Post,
             newItem: Post
         ): Boolean {
-            return oldItem.id == newItem.id
+            //return oldItem.id == newItem.id
+            return oldItem.idPost == newItem.idPost
         }
 
         override fun areContentsTheSame(

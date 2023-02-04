@@ -39,7 +39,7 @@ class UserLocalDataSource(
         userDao.getAllNickname()
     }
 
-    fun getUser(uid: String): Flow<User> = userDao.getUser(uid)
+    fun getUser(uid: String): Flow<User>? = userDao.getUser(uid)
 
     fun getNicknames(queryString: String): Flow<List<Nickname>> = userDao.getNicknames(queryString)
 
