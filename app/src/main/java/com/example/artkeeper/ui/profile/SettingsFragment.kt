@@ -62,7 +62,7 @@ class SettingsFragment : Fragment() {
             showDialogAddChild()
         }
 
-        viewModel.user.observe(viewLifecycleOwner) { user ->
+        viewModel.user?.observe(viewLifecycleOwner) { user ->
             binding.btnRmvSon.setOnClickListener {
                 if (user.nameChild != null && user.nChild != 0)
                     showDialogRemoveChild(user.nameChild.toTypedArray())

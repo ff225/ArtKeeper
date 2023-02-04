@@ -80,7 +80,7 @@ class ProfileFragment : Fragment() {
         recyclerView.adapter = adapter
         adapter.menu = R.menu.options_menu_profile
 
-        viewModel.user.observe(viewLifecycleOwner) {
+        viewModel.user?.observe(viewLifecycleOwner) {
             val imageUri: Uri = viewModel.userPhoto!!
             Glide.with(binding.imageProfile.context)
                 .load(imageUri)

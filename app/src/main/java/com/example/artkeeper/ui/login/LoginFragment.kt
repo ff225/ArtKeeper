@@ -124,7 +124,7 @@ class LoginFragment : Fragment() {
                         TAG, "in userIsRegistered, ${result.data}"
                     )
                     binding.progressBarLogin.visibility = View.GONE
-                    findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToProfileFragment())
+                    findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToMainFragment())
                     //findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
                 }
                 is Resource.Failure -> {

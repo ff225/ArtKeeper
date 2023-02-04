@@ -56,7 +56,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
                     binding.textInputNickname.hint = ""
             }
 
-        viewModel.user.observe(viewLifecycleOwner) {
+        viewModel.user?.observe(viewLifecycleOwner) {
             binding.apply {
                 textInputName.setText(it.firstName)
                 textInputLastname.setText(it.lastName)
