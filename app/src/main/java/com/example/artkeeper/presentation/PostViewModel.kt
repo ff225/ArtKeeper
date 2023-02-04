@@ -19,7 +19,9 @@ class PostViewModel(
     ViewModel() {
 
     private val uid: String = firebaseAuth.uid.toString()
-    val user: LiveData<User> = userRepo.getUserLocal(uid).asLiveData()
+    private var _user: LiveData<User>? = userRepo.getUserLocal(uid)?.asLiveData()
+    val user: LiveData<User>? = _user
+
     private var _imageUri: MutableLiveData<Uri?> = MutableLiveData(null)
     val imageUri: LiveData<Uri?>
         get() = _imageUri
@@ -28,6 +30,9 @@ class PostViewModel(
     val description: LiveData<String?>
         get() = _description
     private var _timestamp: Long = 0L
+
+    val savePostRemoteWorksInfo: LiveData<List<WorkInfo>> =
+        workManager.getWorkInfosForUniqueWorkLiveData("savePostRequest")
 
     fun setImageUri(imageUri: Uri) {
         _imageUri.value = imageUri
@@ -72,7 +77,6 @@ class PostViewModel(
 
         return OneTimeWorkRequestBuilder<GetLatestPost>().setInputData(workDataOf("uid" to uid))
             .setConstraints(constraint)
-            .setInitialDelay(5, TimeUnit.SECONDS)
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
                 OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
@@ -97,14 +101,15 @@ class PostViewModel(
             )
                 .setConstraints(constraint).setBackoffCriteria(
                     BackoffPolicy.LINEAR,
-                    OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                    WorkRequest.MIN_BACKOFF_MILLIS,
                     TimeUnit.MILLISECONDS
                 )
                 .build()
 
+        //TODO
         workManager.beginUniqueWork(
             "savePostRequest",
-            ExistingWorkPolicy.APPEND_OR_REPLACE,
+            ExistingWorkPolicy.KEEP,
             savePostRequest
         ).then(getLatestPost())
             .enqueue()
@@ -125,6 +130,7 @@ class PostViewModel(
 
 }
 
+@Suppress("UNCHECKED_CAST")
 class PostViewModelFactory(
     private val userRepo: UserRepository,
     private val workManager: WorkManager

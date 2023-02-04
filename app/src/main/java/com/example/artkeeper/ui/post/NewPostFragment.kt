@@ -11,20 +11,26 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.isEmpty
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.example.artkeeper.BuildConfig
 import com.example.artkeeper.R
 import com.example.artkeeper.databinding.FragmentNewPostBinding
 import com.example.artkeeper.presentation.PostViewModel
 import com.example.artkeeper.presentation.PostViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.io.File
 import java.io.FileOutputStream
@@ -48,12 +54,14 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
     private val binding
         get() = _binding!!
 
+
     private val viewModel: PostViewModel by viewModels {
         PostViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
             (requireActivity().application as ArtKeeper).workManager
         )
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,30 +75,32 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.user.observe(viewLifecycleOwner) { user ->
-            Log.d(TAG, user.nickName)
+        viewModel.user?.observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                Log.d(TAG, user.nickName)
 
-            Log.d(TAG, user.nameChild!!.isNotEmpty().toString())
+                Log.d(TAG, user.nameChild?.isNotEmpty().toString())
 
-            binding.radioGroup.removeAllViews()
-            if (binding.radioGroup.isEmpty() && user.nameChild.isNotEmpty()) {
-                binding.textviewAddChild.visibility = View.VISIBLE
-                binding.radioGroup.visibility = View.VISIBLE
-                for (item in user.nameChild) {
-                    val radioButton = RadioButton(requireContext())
-                    radioButton.apply {
-                        layoutParams = LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.WRAP_CONTENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT
-                        )
-                        id = user.nameChild.indexOf(item)
-                        text = item
+                binding.radioGroup.removeAllViews()
+                if (binding.radioGroup.isEmpty() && user.nameChild!!.isNotEmpty()) {
+                    binding.textviewAddChild.visibility = View.VISIBLE
+                    binding.radioGroup.visibility = View.VISIBLE
+                    for (item in user.nameChild) {
+                        val radioButton = RadioButton(requireContext())
+                        radioButton.apply {
+                            layoutParams = LinearLayout.LayoutParams(
+                                ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT
+                            )
+                            id = user.nameChild.indexOf(item)
+                            text = item
+                        }
+                        binding.radioGroup.addView(radioButton)
                     }
-                    binding.radioGroup.addView(radioButton)
+                } else {
+                    binding.textviewAddChild.visibility = View.GONE
+                    binding.radioGroup.visibility = View.GONE
                 }
-            } else {
-                binding.textviewAddChild.visibility = View.GONE
-                binding.radioGroup.visibility = View.GONE
             }
 
         }
@@ -98,7 +108,10 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         binding.apply {
             pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
             pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
-            shareButton.setOnClickListener { shareAction() }
+            shareButton.setOnClickListener {
+                shareAction()
+                viewModel.savePostRemoteWorksInfo.observe(viewLifecycleOwner, savePost())
+            }
             cancelButton.setOnClickListener { cancelAction() }
 
 
@@ -111,6 +124,53 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
         viewModel.description.observe(viewLifecycleOwner) { text ->
             binding.textInputDescription.setText(text)
+        }
+    }
+
+    private fun savePost(): Observer<List<WorkInfo>> {
+        return Observer { listOfWorkInfo ->
+            if (listOfWorkInfo.isNullOrEmpty())
+                return@Observer
+            val workInfo = listOfWorkInfo[listOfWorkInfo.lastIndex]
+            Log.d(TAG, workInfo.state.toString())
+            Log.d(TAG, listOfWorkInfo[0].state.toString())
+
+            if (workInfo.state.isFinished) {
+                if (WorkInfo.State.FAILED == workInfo.state)
+                    Toast.makeText(
+                        requireContext(),
+                        "Condivisione del post...fallita",
+                        Toast.LENGTH_LONG
+                    ).show()
+                else {
+                    Toast.makeText(
+                        requireContext(),
+                        "Condivisione del post...da observer",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+                    findNavController().navigate(R.id.action_move_to_home)
+                }
+            } else {
+                binding.apply {
+                    progressBar.visibility = View.VISIBLE
+                    cancelButton.isEnabled = false
+                    shareButton.isEnabled = false
+                    radioGroup.isEnabled = false
+                    pickFromCamera.isEnabled = false
+                    pickFromGallery.isEnabled = false
+                    textInputDescription.isEnabled = false
+                }
+                (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
+                    false
+                )
+                activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)?.visibility =
+                    View.INVISIBLE
+
+                requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+                    cancelAction()
+                }
+            }
         }
     }
 
@@ -184,6 +244,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                         textInputDescription.isFocusableInTouchMode = true
                         radioGroup.clearCheck()
                     }
+                    WorkManager.getInstance(requireContext()).cancelAllWork()
                     viewModel.reset()
                     dialog.dismiss()
                 }.show()
@@ -233,9 +294,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             setChildName(binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text as String?)
             if (checkPost()) {
                 insert()
-                Toast.makeText(requireContext(), "Condivisione del post...", Toast.LENGTH_LONG)
-                    .show()
-                findNavController().navigate(R.id.action_move_to_home)
+
             } else
                 Toast.makeText(
                     requireContext(),
@@ -244,9 +303,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                 ).show()
 
         }
-
     }
-
 
     override fun onDestroy() {
         _binding = null
