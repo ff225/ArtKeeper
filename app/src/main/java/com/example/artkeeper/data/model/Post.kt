@@ -11,8 +11,8 @@ import androidx.room.PrimaryKey
     tableName = "post_user",
 )
 data class Post(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    @ColumnInfo(name = "id_post") val idPost: String,
+    //@PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey @ColumnInfo(name = "id_post") val idPost: String,
     @NonNull @ColumnInfo(name = "image_path") val imagePath: String,
     @ColumnInfo(name = "sketched_by") val sketchedBy: String?,
     @ColumnInfo(name = "description") val description: String?,

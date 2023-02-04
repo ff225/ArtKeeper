@@ -135,7 +135,7 @@ class PostRemoteDataSource(
 
     suspend fun getLatestPost(uid: String): Post {
 
-        var postRetrieved: Post = Post(0, "", "", "", "", "")
+        var postRetrieved: Post = Post(/*0,*/ "", "", "", "", "")
         val postFromRemote =
             dbPost.child(uid).limitToLast(1).get().await()
         Log.d(TAG, postFromRemote.childrenCount.toString())
@@ -146,7 +146,7 @@ class PostRemoteDataSource(
                     storageRef.child("images/$uid/${it?.imagePath}").downloadUrl.await()
                         .toString()
                 postRetrieved = Post(
-                    0,
+                   // 0,
                     post.key.toString(),
                     it!!.imagePath,
                     it.sketchedBy,

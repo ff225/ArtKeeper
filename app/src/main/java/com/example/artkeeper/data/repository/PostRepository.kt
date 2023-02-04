@@ -38,7 +38,7 @@ class PostRepository(
         for (post in postRemoteDataSource.getAllPostRemote(uid).getOrThrow()) {
             postList.add(
                 Post(
-                    0,
+                    //0,
                     post.id,
                     post.imagePath,
                     post.sketchedBy,
@@ -54,7 +54,7 @@ class PostRepository(
         for (post in postRemoteDataSource.getAllPostRemote(uid).getOrThrow()) {
             insert(
                 Post(
-                    0,
+                    //0,
                     post.id,
                     post.imagePath,
                     post.sketchedBy,
