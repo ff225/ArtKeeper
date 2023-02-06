@@ -20,6 +20,21 @@ class UserRepository(
 
     suspend fun deleteUserLocal(user: User) = userLocalDataSource.delete(user)
 
+    suspend fun insertFollowingRequestLocal(uid: String, followers: List<String>) =
+        userLocalDataSource.insertFollowingRequest(uid, followers)
+
+    suspend fun insertFollowingRequestRemote(uid: String, followers: List<String>) =
+        userRemoteDataSource.insertFollowingRequest(uid, followers)
+
+    suspend fun insertFollower(uid: String, followers: List<String>) =
+        userLocalDataSource.insertFollower(uid, followers)
+
+    suspend fun checkPendingReqLocal(uid: String, followers: List<String>) =
+        userLocalDataSource.checkPendingReq(uid, followers)
+
+    suspend fun checkFollower(uid: String, followers: List<String>) =
+        userLocalDataSource.checkFollower(uid, followers)
+
     suspend fun addChildLocal(uid: String, nChild: Int, nameChild: List<String>) =
         userLocalDataSource.addChild(uid, nChild, nameChild)
 
@@ -47,7 +62,7 @@ class UserRepository(
         }
     }
 
-    suspend fun getAllNickname(): List<Nickname> {
+    private suspend fun getAllNickname(): List<Nickname> {
         return userLocalDataSource.getAllNickname()
     }
 

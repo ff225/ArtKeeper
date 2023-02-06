@@ -65,6 +65,12 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
         }
     }
 
+    suspend fun insertFollowingRequest(uid: String, followers: List<String>) {
+        withContext(dispatcher) {
+            dbUser.child(uid).updateChildren(mapOf("pendingRequest" to followers))
+        }
+    }
+
     /**
      * Se l'utente è presente torna l'oggetto da salvare su Room db.
      */
@@ -78,8 +84,6 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
                     .await()
 
             try {
-
-
                 val user =
                     querySnapshot.child(uid).value!! as HashMap<String, *>
                 Log.d(TAG, "in getUser, $user")
@@ -91,7 +95,9 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
                         user["uid"].toString(),
                         user["nickName"].toString(),
                         user["nchild"].toString().toInt(),
-                        user["name_child"] as List<String>?
+                        user["name_child"] as List<String>?,
+                        user["pendingRequest"] as List<String>?,
+                        user["follower"] as List<String>?
                     )
                 )
             } catch (e: Exception) {

@@ -11,6 +11,18 @@ abstract class UserDao : BaseDao<User> {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun insertNickname(nickname: Nickname)
 
+    @Query("UPDATE users SET pending_req=:followers WHERE uid=:uid")
+    abstract suspend fun insertFollowingRequest(uid: String, followers: List<String>)
+
+    @Query("UPDATE users SET follower=:followers WHERE uid=:uid")
+    abstract suspend fun insertFollower(uid: String, followers: List<String>)
+
+    @Query("SELECT EXISTS (SELECT * FROM users WHERE uid=:uid AND pending_req=:followers)")
+    abstract suspend fun checkFollowingRequest(uid: String, followers: List<String>): Boolean
+
+    @Query("SELECT EXISTS (SELECT * FROM users WHERE uid=:uid AND follower=:followers)")
+    abstract suspend fun checkFollower(uid: String, followers: List<String>): Boolean
+
     @Delete
     abstract suspend fun deleteNickname(nickname: Nickname)
 
