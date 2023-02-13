@@ -15,12 +15,25 @@
             app:destination="@id/settingsFragment"
             app:enterAnim="@anim/fui_slide_in_right"
             app:exitAnim="@anim/fui_slide_out_left" />
+        <action
+            android:id="@+id/action_profileFragment_to_pendingRequestFragment"
+            app:destination="@id/pendingRequestFragment">
+            <argument
+                android:name="title"
+                android:defaultValue="@null"
+                app:argType="string"
+                app:nullable="true" />
+            <argument
+                android:name="uidList"
+                android:defaultValue="@null"
+                app:argType="string[]"
+                app:nullable="true" />
+        </action>
     </fragment>
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.example.artkeeper.ui.profile.SettingsFragment"
         android:label="@string/settings"
-
         tools:layout="@layout/fragment_settings">
         <action
             android:id="@+id/action_logout_move_to_home"
@@ -77,4 +90,22 @@
             app:popUpTo="@id/profile"
             app:popUpToInclusive="true" />
     </fragment>
+    <fragment
+        android:id="@+id/pendingRequestFragment"
+        android:name="com.example.artkeeper.ui.profile.PendingRequestFragment"
+        android:label="@string/title_pending_request_Fragment">
+        <action
+            android:id="@+id/action_pendingRequestFragment_to_visitedUserProfileFragment"
+            app:destination="@id/visitedUserProfileFragment2"
+            app:popUpTo="@id/profileFragment">
+            <argument
+                android:name="uidRequest"
+                android:defaultValue="null"
+                app:argType="string" />
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/visitedUserProfileFragment2"
+        android:name="com.example.artkeeper.ui.VisitedUserProfileFragment"
+        android:label="@string/profile" />
 </navigation>
