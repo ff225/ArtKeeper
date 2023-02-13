@@ -149,7 +149,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                         Toast.LENGTH_LONG
                     )
                         .show()
-                    findNavController().navigate(R.id.action_move_to_home)
+                    findNavController().navigate(NewPostFragmentDirections.actionMoveToHome())
                 }
             } else {
                 binding.apply {

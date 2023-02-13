@@ -106,7 +106,6 @@ class PostViewModel(
                 )
                 .build()
 
-        //TODO
         workManager.beginUniqueWork(
             "savePostRequest",
             ExistingWorkPolicy.KEEP,
@@ -117,9 +116,6 @@ class PostViewModel(
 
     fun insert() {
         savePostWork()
-        /*viewModelScope.launch {
-            repo.insert(createPost())
-        }*/
     }
 
     private fun getTimestamp(): Long {
