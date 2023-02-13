@@ -17,11 +17,7 @@ class PostRepository(
 
     suspend fun deleteAll() = postLocalDataSource.deleteAll()
 
-    suspend fun checkTableExist() = postLocalDataSource.checkTableExist()
-
     fun getAllUserPost(): Flow<List<Post>> = postLocalDataSource.getAllUserPost()
-
-    fun getNumPost(): Flow<Int> = postLocalDataSource.getNumPost()
 
     suspend fun saveImageRemote(uid: String, imagePath: String) =
         postRemoteDataSource.saveImageRemote(uid, imagePath)
@@ -37,32 +33,15 @@ class PostRepository(
         val postList = mutableListOf<Post>()
         for (post in postRemoteDataSource.getAllPostRemote(uid).getOrThrow()) {
             postList.add(
-                Post(
-                    //0,
-                    post.id,
-                    post.imagePath,
-                    post.sketchedBy,
-                    post.description,
-                    post.postTimestamp
-                )
+                post
             )
         }
         return Result.success(postList)
     }
 
     suspend fun getAllPostUserRemote(uid: String) {
-        for (post in postRemoteDataSource.getAllPostRemote(uid).getOrThrow()) {
-            insert(
-                Post(
-                    //0,
-                    post.id,
-                    post.imagePath,
-                    post.sketchedBy,
-                    post.description,
-                    post.postTimestamp
-                )
-            )
-        }
+        for (post in getAllPostRemote(uid).getOrThrow())
+            insert(post)
     }
 
     suspend fun deleteRemote(uid: String, idPostRemote: String, imagePath: String): Result<Unit> =

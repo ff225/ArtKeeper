@@ -11,15 +11,11 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.ktx.storage
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileNotFoundException
 
-class PostRemoteDataSource(
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
-) {
+class PostRemoteDataSource {
     private val TAG = javaClass.simpleName
 
     private val dbPost = databaseRef.getReference("post")
@@ -60,19 +56,16 @@ class PostRemoteDataSource(
 
     }
 
-
-    suspend fun getAllPostRemote(uid: String): Result<List<PostFromRemote>> {
-
-        val postList = mutableListOf<PostFromRemote>()
+    suspend fun getAllPostRemote(uid: String): Result<List<Post>> {
+        val postList = mutableListOf<Post>()
         val posts = dbPost.child(uid).get().await()
         for (post in posts.children) {
             post.getValue(PostFromRemote::class.java).let {
                 it?.imagePath =
                     storageRef.child("images/$uid/${it?.imagePath}").downloadUrl.await()
                         .toString()
-
                 postList.add(
-                    PostFromRemote(
+                    Post(
                         post.key.toString(),
                         it!!.imagePath,
                         it.sketchedBy,
@@ -135,7 +128,7 @@ class PostRemoteDataSource(
 
     suspend fun getLatestPost(uid: String): Post {
 
-        var postRetrieved: Post = Post(/*0,*/ "", "", "", "", "")
+        var postRetrieved = Post("", "", "", "", "")
         val postFromRemote =
             dbPost.child(uid).limitToLast(1).get().await()
         Log.d(TAG, postFromRemote.childrenCount.toString())
@@ -146,7 +139,6 @@ class PostRemoteDataSource(
                     storageRef.child("images/$uid/${it?.imagePath}").downloadUrl.await()
                         .toString()
                 postRetrieved = Post(
-                   // 0,
                     post.key.toString(),
                     it!!.imagePath,
                     it.sketchedBy,
