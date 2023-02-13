@@ -1,5 +1,6 @@
 package com.example.artkeeper.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,6 +20,7 @@ import com.example.artkeeper.presentation.MainViewModel
 import com.example.artkeeper.presentation.MainViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 import com.example.artkeeper.utils.Constants.firebaseAuth
+import com.example.artkeeper.utils.NotificationFollowingRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainFragment : Fragment() {
@@ -34,23 +36,20 @@ class MainFragment : Fragment() {
 
     private val viewModel: MainViewModel by viewModels {
         MainViewModelFactory(
-            (requireActivity().application as ArtKeeper).userRepository,
-            (requireActivity().application as ArtKeeper).workManager
+            (requireActivity().application as ArtKeeper).userRepository
         )
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        //viewModel.updateNickname()
-        super.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val serviceIntent = Intent(requireActivity(), NotificationFollowingRequest::class.java)
         if (firebaseAuth.currentUser == null) {
+            requireActivity().stopService(serviceIntent)
             findNavController().navigate(MainFragmentDirections.actionMoveToLogin())
         }
+
         activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = false
         _binding = FragmentMainBinding.inflate(inflater, container, false)
 
@@ -58,6 +57,7 @@ class MainFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
         recyclerView = binding.recyclerViewHome
         val adapter = HomeAdapter(HomeAdapter.HomeListener { nickname, position ->
             findNavController().navigate(
@@ -75,7 +75,7 @@ class MainFragment : Fragment() {
             viewModel.searchQuery.value = queryString
         }
 
-        viewModel.nickname.observe(viewLifecycleOwner) {
+        viewModel.nickNameList.observe(viewLifecycleOwner) {
             adapter.submitList(it)
         }
 
