@@ -13,15 +13,13 @@ data class User(
     @NonNull @ColumnInfo(name = "nickname") val nickName: String,
     @NonNull @ColumnInfo(name = "num_child") val nChild: Int,
     @ColumnInfo(name = "name_child") val nameChild: List<String>?,
-    @ColumnInfo(name = "pending_req") val pendingRequest: List<String>?,
-    @ColumnInfo(name = "follower") val follower: List<String>?
 )
 
-@Entity(tableName = "nickname_users", primaryKeys = ["uid"])
 data class Nickname(
-    @NonNull @ColumnInfo(name = "uid") val uid: String,
-    @NonNull @ColumnInfo(name = "nickname") val nickName: String
+    val uid: String,
+    val nickName: String
 )
+
 
 data class UserOnline(
     var firstName: String? = "",
@@ -31,6 +29,7 @@ data class UserOnline(
     var nickName: String? = "",
     var nChild: Int? = 0,
     var nameChild: List<String>? = listOf(),
-    var pendingRequest: List<String>? = listOf(),
+    var pendingRequestFrom: List<String>? = listOf(),
+    var pendingRequestTo: List<String>? = listOf(),
     var follower: List<String>? = listOf()
 )

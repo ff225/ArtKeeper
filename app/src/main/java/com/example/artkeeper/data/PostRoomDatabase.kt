@@ -5,13 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.artkeeper.data.model.Nickname
 import com.example.artkeeper.data.model.Post
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.utils.Converters
 
 @Database(
-    entities = [Post::class, User::class, Nickname::class],
+    entities = [Post::class, User::class],
     version = 1,
     exportSchema = false
 )

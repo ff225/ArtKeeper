@@ -1,6 +1,5 @@
 package com.example.artkeeper.data.repository
 
-import android.util.Log
 import com.example.artkeeper.data.datasource.UserLocalDataSource
 import com.example.artkeeper.data.datasource.UserRemoteDataSource
 import com.example.artkeeper.data.model.Nickname
@@ -20,20 +19,12 @@ class UserRepository(
 
     suspend fun deleteUserLocal(user: User) = userLocalDataSource.delete(user)
 
-    suspend fun insertFollowingRequestLocal(uid: String, followers: List<String>) =
-        userLocalDataSource.insertFollowingRequest(uid, followers)
-
-    suspend fun insertFollowingRequestRemote(uid: String, followers: List<String>) =
-        userRemoteDataSource.insertFollowingRequest(uid, followers)
-
-    suspend fun insertFollower(uid: String, followers: List<String>) =
-        userLocalDataSource.insertFollower(uid, followers)
-
-    suspend fun checkPendingReqLocal(uid: String, followers: List<String>) =
-        userLocalDataSource.checkPendingReq(uid, followers)
-
-    suspend fun checkFollower(uid: String, followers: List<String>) =
-        userLocalDataSource.checkFollower(uid, followers)
+    suspend fun insertFollowingRequestRemote(
+        uid: String,
+        children: String,
+        followers: List<String>
+    ) =
+        userRemoteDataSource.insertFollowingRequest(uid, children, followers)
 
     suspend fun addChildLocal(uid: String, nChild: Int, nameChild: List<String>) =
         userLocalDataSource.addChild(uid, nChild, nameChild)
@@ -55,23 +46,15 @@ class UserRepository(
     suspend fun addChildRemote(nChild: Int, nameChild: List<String>) =
         userRemoteDataSource.addChild(nChild, nameChild)
 
-    suspend fun insertNicknames() {
-        Log.d("UserRepository", "insert nicknames...")
-        for (nick in userRemoteDataSource.getAllNicknames().getOrThrow()) {
-            userLocalDataSource.insertNickname(nick)
-        }
-    }
+    fun getAllNicknamePendingReq(pendingReq: List<String>): Flow<List<Nickname>> =
+        userRemoteDataSource.getAllNicknamePendingReq(pendingReq)
+    
+    fun getPendingReqFrom(): Flow<List<String>> = userRemoteDataSource.getPendingReqFrom()
 
-    private suspend fun getAllNickname(): List<Nickname> {
-        return userLocalDataSource.getAllNickname()
-    }
+    fun getPendingReqTo(): Flow<List<String>> = userRemoteDataSource.getPendingReqTo()
 
-    suspend fun deleteNicknames() {
-        for (nick in getAllNickname()) {
-            userLocalDataSource.deleteNickname(nick)
-        }
-    }
+    fun getFollowers(): Flow<List<String>> = userRemoteDataSource.getFollowers()
 
     fun getNicknames(queryString: String): Flow<List<Nickname>> =
-        userLocalDataSource.getNicknames(queryString)
+        userRemoteDataSource.getNickname(queryString)
 }
