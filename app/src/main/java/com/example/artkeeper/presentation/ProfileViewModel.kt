@@ -31,6 +31,8 @@ class ProfileViewModel(
     private lateinit var _nickName: String
     private lateinit var _nameChild: MutableList<String>
     private var _nChild: Int = -1
+    private lateinit var _pendingReq: MutableList<String>
+    private lateinit var _follower: MutableList<String>
 
     private val _user: MutableLiveData<User> =
         userRepo.getUserLocal(firebaseAuth.uid.toString())?.asLiveData() as MutableLiveData<User>
@@ -57,7 +59,7 @@ class ProfileViewModel(
         viewModelScope.launch {
 
             //if (postRepo.checkTableExist() == 0)
-                postRepo.getAllPostUserRemote(firebaseAuth.uid.toString())
+            postRepo.getAllPostUserRemote(firebaseAuth.uid.toString())
             //userRepo.insertNicknames()
 
         }
@@ -81,6 +83,10 @@ class ProfileViewModel(
 
     private fun getNChild() = _user.value?.nChild ?: 0
 
+    private fun getPendingRequest() = _user.value?.pendingRequest ?: listOf()
+
+    private fun getFollower() = _user.value?.follower ?: listOf()
+
     private fun createUser(uid: String): User {
         return User(
             uid,
@@ -89,7 +95,9 @@ class ProfileViewModel(
             userPhoto.toString(),
             _nickName,
             _nChild,
-            _nameChild
+            _nameChild,
+            _pendingReq,
+            _follower
         )
     }
 
@@ -100,7 +108,9 @@ class ProfileViewModel(
         uo.photoUser!!,
         uo.nickName!!,
         uo.nChild!!,
-        uo.nameChild ?: listOf()
+        uo.nameChild ?: listOf(),
+        uo.pendingRequest ?: listOf(),
+        uo.follower ?: listOf()
     )
 
     fun checkUser() = liveData {
@@ -343,6 +353,8 @@ class ProfileViewModel(
         _nickName = ""
         _nameChild = getNameChild().toMutableList()
         _nChild = getNChild()
+        _pendingReq = getPendingRequest().toMutableList()
+        _follower = getFollower().toMutableList()
         Log.i(TAG, "in reset, reset delle variabili")
     }
 
