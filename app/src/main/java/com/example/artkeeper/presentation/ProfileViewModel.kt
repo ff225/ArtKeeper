@@ -1,6 +1,5 @@
 package com.example.artkeeper.presentation
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.work.*
@@ -16,6 +15,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 class ProfileViewModel(
@@ -26,78 +26,54 @@ class ProfileViewModel(
     ViewModel() {
     private val TAG: String = javaClass.simpleName
 
-    private lateinit var _name: String
-    private lateinit var _lastName: String
-    private lateinit var _nickName: String
-    private lateinit var _nameChild: MutableList<String>
-    private var _nChild: Int = -1
-    private lateinit var _pendingReq: MutableList<String>
-    private lateinit var _follower: MutableList<String>
+    private val _user = MutableLiveData<User>()
+    val user: LiveData<User>
+        get() = _user
 
-    private val _user: MutableLiveData<User> =
-        userRepo.getUserLocal(firebaseAuth.uid.toString())?.asLiveData() as MutableLiveData<User>
-
-    val user: LiveData<User>? = _user
-    val userPhoto: Uri? = firebaseAuth.currentUser?.photoUrl
-    val numPost: LiveData<Int> = postRepo.getNumPost().asLiveData()
     val postUser: LiveData<List<Post>> =
         postRepo.getAllUserPost().asLiveData()
+
+    private val _pendingRequestFrom = MutableLiveData<List<String>>()
+    val pendingRequestFrom: LiveData<List<String>>
+        get() = _pendingRequestFrom
+    private val _followers = MutableLiveData<List<String>>()
+    val followers: LiveData<List<String>>
+        get() = _followers
+
 
     val deleteRemoteUserWorksInfo: LiveData<List<WorkInfo>>
     val logoutUserWorkInfo: LiveData<List<WorkInfo>>
 
     init {
-        reset()
+        //reset()
+
         deleteRemoteUserWorksInfo =
             workManager.getWorkInfosForUniqueWorkLiveData("DeleteRemoteUserWorker")
 
         logoutUserWorkInfo =
             workManager.getWorkInfosForUniqueWorkLiveData("DeleteLocalAccountUserWorker")
-        Log.d(TAG, numPost.value.toString())
 
+        observeUser()
+        observePendingRequestFrom()
+        observeFollowers()
 
         viewModelScope.launch {
-
-            //if (postRepo.checkTableExist() == 0)
             postRepo.getAllPostUserRemote(firebaseAuth.uid.toString())
-            //userRepo.insertNicknames()
 
         }
-        Log.d(TAG, "${_nChild}, ${_nameChild.size} ")
+        Log.d(TAG, "${_user.value?.nChild}, ${_user.value?.nameChild?.size} ")
         Log.d(TAG, "in init, image profile path: ${firebaseAuth.currentUser?.photoUrl.toString()}")
     }
 
-    fun setName(name: String) {
-        _name = name.trim()
-    }
-
-    fun setLastName(lastName: String) {
-        _lastName = lastName.trim()
-    }
-
-    fun setNickName(nick: String) {
-        _nickName = nick.trim()
-    }
-
-    private fun getNameChild() = _user.value?.nameChild ?: listOf()
-
-    private fun getNChild() = _user.value?.nChild ?: 0
-
-    private fun getPendingRequest() = _user.value?.pendingRequest ?: listOf()
-
-    private fun getFollower() = _user.value?.follower ?: listOf()
-
-    private fun createUser(uid: String): User {
+    private fun createUser(name: String, lastName: String, nickName: String): User {
         return User(
-            uid,
-            _name,
-            _lastName,
-            userPhoto.toString(),
-            _nickName,
-            _nChild,
-            _nameChild,
-            _pendingReq,
-            _follower
+            firebaseAuth.uid!!,
+            name,
+            lastName,
+            firebaseAuth.currentUser?.photoUrl.toString(),
+            nickName,
+            _user.value?.nChild ?: 0,
+            _user.value?.nameChild ?: mutableListOf(),
         )
     }
 
@@ -109,8 +85,6 @@ class ProfileViewModel(
         uo.nickName!!,
         uo.nChild!!,
         uo.nameChild ?: listOf(),
-        uo.pendingRequest ?: listOf(),
-        uo.follower ?: listOf()
     )
 
     fun checkUser() = liveData {
@@ -123,47 +97,43 @@ class ProfileViewModel(
         }
     }
 
-    /*
-    Le chiamate suspend vanno utilizzate quando va emesso un solo valore.
-    Non vanno usate, per es., quando vogliamo caricare i post.
-     */
+
     private suspend fun getUserRemote(uid: String) = userRepo.getUserRemote(uid).getOrThrow()
 
     fun addChild(name: String) {
-        //reset()
-        _nameChild = _user.value?.nameChild as MutableList<String>
-        _nameChild.add(name)
-        _nChild = _nameChild.size
-        Log.i(TAG, "in addChild, Names: $_nameChild")
-        Log.i(TAG, "in addChild, Size: $_nChild")
-        saveChild()
+        val nameChild = _user.value?.nameChild as MutableList<String>
+        nameChild.add(name)
+        val nChild = nameChild.size
+        Log.i(TAG, "in addChild, Names: $nameChild")
+        Log.i(TAG, "in addChild, Size: $nChild")
+        saveChild(nameChild, nChild)
 
     }
 
     fun removeChild(id: Int) {
-        _nameChild = _user.value?.nameChild as MutableList<String>
-        _nameChild.removeAt(id)
-        _nChild = _nameChild.size
-        Log.i(TAG, "in removeChild, Names: $_nameChild")
-        Log.i(TAG, "in removeChild, Size: $_nChild")
-        saveChild()
+        val nameChild = _user.value?.nameChild as MutableList<String>
+        nameChild.removeAt(id)
+        val nChild = nameChild.size
+        Log.i(TAG, "in removeChild, Names: $nameChild")
+        Log.i(TAG, "in removeChild, Size: $nChild")
+        saveChild(nameChild, nChild)
 
     }
 
-    private fun saveChild() {
-        saveChildWork()
+    private fun saveChild(nameChild: List<String>, nChild: Int) {
+        saveChildWork(nameChild, nChild)
         viewModelScope.launch {
-            userRepo.addChildLocal(firebaseAuth.uid.toString(), _nChild, _nameChild)
+            userRepo.addChildLocal(firebaseAuth.uid.toString(), nChild, nameChild)
         }
     }
 
-    private fun saveChildWork() {
+    private fun saveChildWork(nameChild: List<String>, nChild: Int) {
         val constraint = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
         val saveChildRequest = OneTimeWorkRequestBuilder<SaveChildRemote>()
             .setInputData(
-                workDataOf("nChild" to _nChild, "nameChild" to _nameChild.toTypedArray())
+                workDataOf("nameChild" to nameChild.toTypedArray(), "nChild" to nChild)
             ).setConstraints(constraint)
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
@@ -187,26 +157,47 @@ class ProfileViewModel(
             "lastName" to user.lastName,
             "photoUser" to user.photo,
             "nChild" to user.nChild,
-            "nameChild" to user.nameChild?.toTypedArray()
+            "name_child" to user.nameChild?.toTypedArray(),
         )
 
-    fun updateUserInfo(prevNickname: String) = liveData {
-        emit(Resource.Loading())
-        userRepo.checkNicknameRemote(_nickName).onSuccess {
-            updateUserInfoWork()
-            //updateNicknamePost(_nickName)
-            emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth.uid.toString()))))
-        }.onFailure {
-            if (_nickName != prevNickname)
-                emit(Resource.Failure(Exception(it.message.toString())))
-            else {
-                updateUserInfoWork()
-                emit(Resource.Success(userRepo.updateUserLocal(createUser(firebaseAuth.uid.toString()))))
+    fun updateUserInfo(name: String, lastName: String, nickName: String, prevNickname: String) =
+        liveData {
+            emit(Resource.Loading())
+            userRepo.checkNicknameRemote(nickName).onSuccess {
+                updateUserInfoWork(name, lastName, nickName)
+                emit(
+                    Resource.Success(
+                        userRepo.updateUserLocal(
+                            createUser(
+                                name,
+                                lastName,
+                                nickName
+                            )
+                        )
+                    )
+                )
+            }.onFailure {
+                if (nickName != prevNickname)
+                    emit(Resource.Failure(Exception(it.message.toString())))
+                else {
+                    updateUserInfoWork(name, lastName, nickName)
+                    emit(
+                        Resource.Success(
+                            userRepo.updateUserLocal(
+                                createUser(
+                                    name,
+                                    lastName,
+                                    nickName
+                                )
+                            )
+                        )
+                    )
+                }
             }
         }
-    }
 
-    private fun updateUserInfoWork() {
+
+    private fun updateUserInfoWork(name: String, lastName: String, nickName: String) {
         val constraint = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -214,8 +205,9 @@ class ProfileViewModel(
 
             .setInputData(
                 inputDataWorker(
-                    createUser(firebaseAuth.uid.toString())
+                    createUser(name, lastName, nickName)
                 )
+
             ).setConstraints(constraint)
             .setBackoffCriteria(
                 BackoffPolicy.LINEAR,
@@ -234,13 +226,23 @@ class ProfileViewModel(
         userRepo.insertUserLocal(user)
     }
 
-    fun userRegistration() = liveData {
+    fun userRegistration(name: String, lastName: String, nickName: String) = liveData {
         emit(Resource.Loading())
 
-        userRepo.checkNicknameRemote(_nickName).onSuccess { isNotUsed ->
+        userRepo.checkNicknameRemote(nickName).onSuccess { isNotUsed ->
             if (isNotUsed) {
-                insertUser(createUser(firebaseAuth.uid.toString()))
-                emit(Resource.Success(userRepo.insertUserRemote(createUser(firebaseAuth.uid.toString()))))
+                insertUser(createUser(name, lastName, nickName))
+                emit(
+                    Resource.Success(
+                        userRepo.insertUserRemote(
+                            createUser(
+                                name,
+                                lastName,
+                                nickName
+                            )
+                        )
+                    )
+                )
             }
         }.onFailure {
             emit(Resource.Failure(Exception("Nickname Utilizzato")))
@@ -272,7 +274,7 @@ class ProfileViewModel(
 
         workManager.beginUniqueWork(
             "deletePostRemote",
-            ExistingWorkPolicy.REPLACE,
+            ExistingWorkPolicy.APPEND,
             deletePostRequest
         ).enqueue()
     }
@@ -281,7 +283,6 @@ class ProfileViewModel(
         emit(Resource.Loading())
         try {
             FirebaseAuth.getInstance().currentUser?.delete()!!.await()
-            reset()
             emit(Resource.Success("Operazione effettuata con successo."))
         } catch (e: Exception) {
             emit(Resource.Failure(e))
@@ -292,7 +293,8 @@ class ProfileViewModel(
         OneTimeWorkRequestBuilder<DeleteLocalUser>()
             .setInputData(
                 inputDataWorker(
-                    createUser(firebaseAuth.uid.toString())
+                    _user.value!!
+                    //createUser(firebaseAuth.uid.toString())
                 )
             )
             .setBackoffCriteria(
@@ -303,7 +305,6 @@ class ProfileViewModel(
             .build()
 
     fun deleteUserLocalWork() {
-        reset()
         workManager.cancelAllWorkByTag("savePostRequest")
         workManager.cancelUniqueWork("getLatestPostWorker")
         workManager
@@ -347,17 +348,35 @@ class ProfileViewModel(
             .then(deleteUserLocal()).enqueue()
     }
 
-    private fun reset() {
-        _name = ""
-        _lastName = ""
-        _nickName = ""
-        _nameChild = getNameChild().toMutableList()
-        _nChild = getNChild()
-        _pendingReq = getPendingRequest().toMutableList()
-        _follower = getFollower().toMutableList()
-        Log.i(TAG, "in reset, reset delle variabili")
+    private fun observeUser() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userRepo.getUserLocal(firebaseAuth.uid!!)?.collect {
+                    _user.postValue(it)
+                }
+            }
+        }
     }
 
+    private fun observePendingRequestFrom() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userRepo.getPendingReqFrom().collect {
+                    _pendingRequestFrom.postValue(it)
+                }
+            }
+        }
+    }
+
+    private fun observeFollowers() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                userRepo.getFollowers().collect {
+                    _followers.postValue(it)
+                }
+            }
+        }
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

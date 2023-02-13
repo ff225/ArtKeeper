@@ -6,7 +6,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.NotificationCompat
 import androidx.core.app.ShareCompat
+import androidx.core.net.toUri
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -29,6 +31,7 @@ class ProfileFragment : Fragment() {
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
 
+
     private lateinit var recyclerView: RecyclerView
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
@@ -44,6 +47,7 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
+
         activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = false
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return binding.root
@@ -51,16 +55,21 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         recyclerView = binding.recyclerViewProfile
+        var builder = NotificationCompat.Builder(requireContext(), "PendingRequestFrom")
+            .setSmallIcon(R.drawable.ic_icon_app)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText("Hai ricevuto delle richieste di amicizia...")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
         val adapter = PostAdapter(PostAdapter.PostListener { post, position, option ->
-            Log.d(TAG, "postId: ${post.id}")
+
             Log.d(TAG, "position: $position")
 
-            if (option.equals("remove")) {
+            if (option == "remove") {
                 viewModel.deletePost(post)
                 recyclerView.adapter!!.notifyItemRemoved(position)
             }
-            if (option.equals("share")) {
+            if (option == "share") {
                 val path = ShareAction().getTmpFileUri(requireContext(), post.imagePath)
                 val shareIntent =
                     ShareCompat.IntentBuilder(requireActivity()).apply {
@@ -80,30 +89,57 @@ class ProfileFragment : Fragment() {
         recyclerView.adapter = adapter
         adapter.menu = R.menu.options_menu_profile
 
-        viewModel.user?.observe(viewLifecycleOwner) {
-            val imageUri: Uri = viewModel.userPhoto!!
+        viewModel.user.observe(viewLifecycleOwner) { user ->
+            val imageUri: Uri = user.photo.toUri()
             Glide.with(binding.imageProfile.context)
                 .load(imageUri)
                 .into(binding.imageProfile)
-            binding.tvName.text = it.firstName
-            binding.tvLastName.text = it.lastName
-            binding.tvUsername.text = it.nickName
-            adapter.nickName = it.nickName
+            binding.apply {
+                tvName.text = user.firstName
+                tvLastName.text = user.lastName
+                tvUsername.text = user.nickName
+
+                viewModel.pendingRequestFrom.observe(viewLifecycleOwner) { pendingReq ->
+                    if (pendingReq.isNotEmpty())
+                        buttonNotification.setOnClickListener {
+                            Log.d(TAG, pendingReq.toString())
+                            findNavController().navigate(
+                                ProfileFragmentDirections.actionProfileFragmentToPendingRequestFragment(
+                                    null,
+                                    pendingReq.toTypedArray()
+                                )
+                            )
+                        }
+                }
+
+                viewModel.followers.observe(viewLifecycleOwner) { followers ->
+                    if (followers.isNotEmpty()) {
+                        buttonFollower.setOnClickListener {
+                            findNavController().navigate(
+                                ProfileFragmentDirections.actionProfileFragmentToPendingRequestFragment(
+                                    "Follower",
+                                    followers.toTypedArray()
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+            adapter.nickName = user.nickName
+
         }
 
-        viewModel.numPost.observe(viewLifecycleOwner) {
-            binding.tvNPost.text = getString(R.string.num_post, it.toString())
-        }
-
-        viewModel.postUser.observe(viewLifecycleOwner) { post ->
+        viewModel.postUser.observe(viewLifecycleOwner)
+        { post ->
             Log.d(TAG, post.size.toString())
+            binding.tvNPost.text = getString(R.string.num_post, post.size.toString())
             post.let {
                 adapter.submitList(post)
             }
         }
 
         binding.btnSettings.setOnClickListener {
-            findNavController().navigate(R.id.action_profileFragment_to_settingsFragment)
+            findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToSettingsFragment())
         }
     }
 

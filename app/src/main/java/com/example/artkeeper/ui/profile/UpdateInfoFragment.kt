@@ -28,6 +28,10 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         get() = _binding!!
 
 
+    private lateinit var name: String
+    private lateinit var lastName: String
+    private lateinit var nickName: String
+
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
@@ -56,7 +60,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
                     binding.textInputNickname.hint = ""
             }
 
-        viewModel.user?.observe(viewLifecycleOwner) {
+        viewModel.user.observe(viewLifecycleOwner) {
             binding.apply {
                 textInputName.setText(it.firstName)
                 textInputLastname.setText(it.lastName)
@@ -77,7 +81,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     private fun updateInfo(prevNickname: String) {
         if (!checkUserInfo()) {
             createUser()
-            viewModel.updateUserInfo(prevNickname)
+            viewModel.updateUserInfo(name, lastName, nickName, prevNickname)
                 .observe(viewLifecycleOwner, Observer { result ->
                     when (result) {
                         is Resource.Loading -> Log.d(TAG, "caricamento...")
@@ -93,14 +97,13 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     }
 
     private fun createUser() {
-        viewModel.apply {
-            setName(binding.textInputName.text.toString().trim())
-            setLastName(binding.textInputLastname.text.toString().trim())
-            setNickName(
-                binding.textInputNickname.text.toString().lowercase().trim()
-                    .filterNot { it.isWhitespace() })
-        }
+
+        name = binding.textInputName.text.toString().trim().filterNot { it.isWhitespace() }
+        lastName = binding.textInputLastname.text.toString().trim().filterNot { it.isWhitespace() }
+        nickName = binding.textInputNickname.text.toString().lowercase().trim()
+            .filterNot { it.isWhitespace() }
     }
+
 
     private fun checkUserInfo(): Boolean {
         var hasError = false
