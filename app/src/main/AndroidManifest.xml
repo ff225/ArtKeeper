@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.artkeeper">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:name=".utils.ArtKeeper"
         android:allowBackup="true"
@@ -14,20 +15,22 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="sensorPortrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <!-- <activity android:name=".LoginActivity" />-->
-
-        <!-- FileProvider è una sottoclasee di ContentProvider che rende semplice e sicura la
+        </activity> <!-- <activity android:name=".LoginActivity" /> -->
+        <!--
+ FileProvider è una sottoclasee di ContentProvider che rende semplice e sicura la
         condivisione dei file associati ad un app creando un 'content://Uri per un file invece di
-        file://Uri.-->
+        file://Uri.
+        -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.file_provider"
@@ -44,6 +47,10 @@
         <meta-data
             android:name="com.facebook.sdk.ClientToken"
             android:value="@string/facebook_client_token" />
+
+        <service
+            android:name=".utils.NotificationFollowingRequest"
+            android:enabled="True" />
     </application>
 
 </manifest>
