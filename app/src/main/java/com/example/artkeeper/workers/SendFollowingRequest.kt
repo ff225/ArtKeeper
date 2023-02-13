@@ -12,29 +12,57 @@ class SendFollowingRequest(ctx: Context, params: WorkerParameters) : CoroutineWo
     override suspend fun doWork(): Result {
         val uidUser = inputData.getString("uidUser")!!
         val uidRequest = inputData.getString("uidRequest")!!
+        val isFollowingRequest = inputData.getBoolean("isFollowingRequest", false)
+
         return try {
+
             userRepository.getUserRemote(uidUser).onSuccess { user ->
                 var listRequest = mutableListOf<String>()
-                Log.d(javaClass.simpleName, user.pendingRequest.toString())
-                if (!user.pendingRequest.isNullOrEmpty())
-                    listRequest = user.pendingRequest as MutableList<String>
-                listRequest.add(uidRequest)
+                Log.d(javaClass.simpleName, user.pendingRequestTo.toString())
 
-                userRepository.insertFollowingRequestRemote(uidUser, listRequest)
-                userRepository.insertFollowingRequestLocal(uidUser, listRequest)
+                if (isFollowingRequest) {
+                    if (!user.pendingRequestTo.isNullOrEmpty())
+                        listRequest = user.pendingRequestTo as MutableList<String>
+                    listRequest.add(uidRequest)
+                    userRepository.insertFollowingRequestRemote(
+                        uidUser,
+                        "pendingRequestTo",
+                        listRequest
+                    )
+                } else {
+                    listRequest = user.pendingRequestTo as MutableList<String>
+                    listRequest.remove(uidRequest)
+                    userRepository.insertFollowingRequestRemote(
+                        uidUser,
+                        "pendingRequestTo",
+                        listRequest
+                    )
+                }
             }
 
             userRepository.getUserRemote(uidRequest).onSuccess { user ->
                 var listRequest = mutableListOf<String>()
-                Log.d(javaClass.simpleName, user.pendingRequest.toString())
-                if (!user.pendingRequest.isNullOrEmpty())
-                    listRequest = user.pendingRequest as MutableList<String>
-                listRequest.add(uidUser)
+                Log.d(javaClass.simpleName, user.pendingRequestFrom.toString())
 
-                userRepository.insertFollowingRequestRemote(uidRequest, listRequest)
-                userRepository.insertFollowingRequestLocal(uidRequest, listRequest)
+                if (isFollowingRequest) {
+                    if (!user.pendingRequestFrom.isNullOrEmpty())
+                        listRequest = user.pendingRequestFrom as MutableList<String>
+                    listRequest.add(uidUser)
+                    userRepository.insertFollowingRequestRemote(
+                        uidRequest,
+                        "pendingRequestFrom",
+                        listRequest
+                    )
+                } else {
+                    listRequest = user.pendingRequestFrom as MutableList<String>
+                    listRequest.remove(uidUser)
+                    userRepository.insertFollowingRequestRemote(
+                        uidRequest,
+                        "pendingRequestFrom",
+                        listRequest
+                    )
+                }
             }
-
             Result.success()
         } catch (e: Exception) {
             Result.failure()
