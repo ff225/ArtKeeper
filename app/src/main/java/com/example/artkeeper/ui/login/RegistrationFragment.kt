@@ -1,6 +1,7 @@
 package com.example.artkeeper.ui.login
 
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.util.Log
@@ -19,6 +20,7 @@ import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
 import com.example.artkeeper.utils.Constants.regex
+import com.example.artkeeper.utils.NotificationFollowingRequest
 import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -31,6 +33,10 @@ class RegistrationFragment : Fragment() {
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
     private var isRegistered = false
+
+    private lateinit var name: String
+    private lateinit var lastName: String
+    private lateinit var nickName: String
 
     private val viewModel by navGraphViewModels<ProfileViewModel>(R.id.profile) {
         ProfileViewModelFactory(
@@ -94,19 +100,26 @@ class RegistrationFragment : Fragment() {
         if (!checkUserInfo()) {
             createUser()
             isRegistered = true
-            viewModel.userRegistration().observe(viewLifecycleOwner, Observer { result ->
-                when (result) {
-                    is Resource.Loading -> Log.d(TAG, "caricamento")
-                    is Resource.Success -> {
-                        findNavController().navigate(R.id.action_registrationFragment_to_home)
-                        Log.d(TAG, "in userRegistration, user registered: ${result.data}")
+            viewModel.userRegistration(name, lastName, nickName)
+                .observe(viewLifecycleOwner, Observer { result ->
+                    when (result) {
+                        is Resource.Loading -> Log.d(TAG, "caricamento")
+                        is Resource.Success -> {
+                            val serviceIntent =
+                                Intent(requireActivity(), NotificationFollowingRequest::class.java)
+                            requireActivity().startService(serviceIntent)
+                            findNavController().navigate(R.id.action_registrationFragment_to_home)
+                            Log.d(TAG, "in userRegistration, user registered: ${result.data}")
+                        }
+                        is Resource.Failure -> {
+                            binding.textInputNickname.error = result.exception.message
+                            Log.e(
+                                TAG,
+                                "in userRegistration, ${result.exception.message.toString()}"
+                            )
+                        }
                     }
-                    is Resource.Failure -> {
-                        binding.textInputNickname.error = result.exception.message
-                        Log.e(TAG, "in userRegistration, ${result.exception.message.toString()}")
-                    }
-                }
-            })
+                })
         } else
             isRegistered = false
     }
@@ -142,18 +155,15 @@ class RegistrationFragment : Fragment() {
     }
 
     private fun createUser() {
-        viewModel.apply {
-            setName(binding.textInputName.text.toString().trim())
-            setLastName(binding.textInputLastname.text.toString().trim())
-            setNickName(
-                binding.textInputNickname.text.toString().lowercase().trim()
-                    .filterNot { it.isWhitespace() })
 
-        }
+        name = binding.textInputName.text.toString().trim().filterNot { it.isWhitespace() }
+        lastName = binding.textInputLastname.text.toString().trim().filterNot { it.isWhitespace() }
+        nickName = binding.textInputNickname.text.toString().lowercase().trim()
+            .filterNot { it.isWhitespace() }
     }
 
     private fun deleteRegistration() {
-        viewModel.deleteRegistration().observe(viewLifecycleOwner, Observer { result ->
+        viewModel.deleteRegistration().observe(viewLifecycleOwner) { result ->
             when (result) {
                 is Resource.Loading -> {
                     binding.apply {
@@ -183,7 +193,7 @@ class RegistrationFragment : Fragment() {
                         .show()
                 }
             }
-        })
+        }
     }
 
     override fun onPause() {

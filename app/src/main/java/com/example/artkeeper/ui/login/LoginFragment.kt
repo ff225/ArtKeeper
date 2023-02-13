@@ -1,5 +1,6 @@
 package com.example.artkeeper.ui.login
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -9,7 +10,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
@@ -17,6 +17,7 @@ import com.example.artkeeper.databinding.FragmentLoginBinding
 import com.example.artkeeper.presentation.ProfileViewModel
 import com.example.artkeeper.presentation.ProfileViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.NotificationFollowingRequest
 import com.example.artkeeper.utils.Resource
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
@@ -112,7 +113,7 @@ class LoginFragment : Fragment() {
 
 
     private fun userIsRegistered() {
-        viewModel.checkUser().observe(viewLifecycleOwner, Observer { result ->
+        viewModel.checkUser().observe(viewLifecycleOwner) { result ->
             when (result) {
                 is Resource.Loading -> {
                     Log.d(TAG, "in userIsRegistered, caricamento")
@@ -123,18 +124,20 @@ class LoginFragment : Fragment() {
                     Log.d(
                         TAG, "in userIsRegistered, ${result.data}"
                     )
+                    val serviceIntent =
+                        Intent(requireActivity(), NotificationFollowingRequest::class.java)
+                    requireActivity().startService(serviceIntent)
                     binding.progressBarLogin.visibility = View.GONE
                     findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToMainFragment())
-                    //findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
                 }
                 is Resource.Failure -> {
                     Log.e(TAG, "in userIsRegistered, ${result.exception.message.toString()}")
                     binding.progressBarLogin.visibility = View.GONE
-                    findNavController().navigate(R.id.action_loginFragment_to_registrationFragment)
+                    findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToRegistrationFragment())
                 }
                 else -> {}
             }
-        })
+        }
     }
 
     override fun onDestroy() {
