@@ -17,7 +17,7 @@ class SaveUserRemote(ctx: Context, params: WorkerParameters) : CoroutineWorker(c
         val lastname = inputData.getString("lastName")
         val photoUser = inputData.getString("photoUser")
         val nChild = inputData.getInt("nChild", 0)
-        val nameChild = inputData.getStringArray("nameChild")?.toList()
+        val nameChild = inputData.getStringArray("name_child")?.toList()
 
         userRepository.insertUserRemote(
             User(

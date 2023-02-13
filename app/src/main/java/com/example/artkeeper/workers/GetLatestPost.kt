@@ -8,12 +8,12 @@ import com.example.artkeeper.utils.ArtKeeper
 class GetLatestPost(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
     private val postRepo = (ctx.applicationContext as ArtKeeper).postRepository
     override suspend fun doWork(): Result {
-        try {
+        return try {
             val uid = inputData.getString("uid")!!
             postRepo.updateRoomWithLatestPost(uid)
-            return Result.success()
+            Result.success()
         } catch (e: Exception) {
-            return Result.failure()
+            Result.failure()
         }
 
     }

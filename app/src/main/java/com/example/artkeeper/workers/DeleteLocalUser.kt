@@ -33,12 +33,11 @@ class DeleteLocalUser(ctx: Context, params: WorkerParameters) : CoroutineWorker(
                     photoUser!!,
                     nickname!!,
                     nChild,
-                    nameChild
+                    nameChild,
                 )
             )
 
             postRepository.deleteAll()
-            userRepository.deleteNicknames()
 
             Result.success(workDataOf("value" to true))
         } catch (e: Exception) {
