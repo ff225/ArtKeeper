@@ -34,4 +34,7 @@
         <item>Fotocamera</item>
         <item>Galleria</item>
     </array>
+    <string name="stop_following">Smetti di seguire</string>
+    <string name="follow">Segui</string>
+    <string name="title_pending_request_Fragment">Richieste di amicizia</string>
 </resources>
