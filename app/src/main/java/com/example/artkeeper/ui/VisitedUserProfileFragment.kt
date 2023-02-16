@@ -43,7 +43,7 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = FragmentProfileBinding.inflate(inflater, container, false)
         return _binding!!.root
     }
@@ -55,7 +55,6 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
             buttonFollower.visibility = View.GONE
             buttonNotification.visibility = View.GONE
         }
-        recyclerView = binding.recyclerViewProfile
 
         val adapter = PostAdapter(PostAdapter.PostListener { post, position, option ->
             Log.d(TAG, "position: $position")
@@ -75,11 +74,51 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
                 startActivity(shareIntent)
             }
         })
-
-
+        recyclerView = binding.recyclerViewProfile
         recyclerView.adapter = adapter
         adapter.menu = R.menu.options_menu_home
+        listener()
+        userObserver(adapter)
 
+    }
+
+
+    private fun listener() {
+        binding.apply {
+            acceptFollowinReq.apply {
+                setOnClickListener {
+                    Log.d(TAG, arguments?.getString("uidRequest")!!)
+                    viewModel.acceptRequest(arguments?.getString("uidRequest")!!, true)
+                    llPendingReq.visibility = View.GONE
+                    btnSettings.visibility = View.VISIBLE
+                    btnSettings.text = getString(R.string.stop_following)
+                }
+            }
+            deleteFollowingReq.apply {
+                setOnClickListener {
+                    Log.d(TAG, arguments?.getString("uidRequest")!!)
+                    viewModel.acceptRequest(arguments?.getString("uidRequest")!!, false)
+                    llPendingReq.visibility = View.GONE
+                    btnSettings.visibility = View.VISIBLE
+                    btnSettings.text = getString(R.string.follow)
+                }
+            }
+            btnSettings.setOnClickListener {
+                binding.btnSettings.apply {
+                    if (text == getString(R.string.follow)) {
+                        viewModel.sendRequest(arguments?.getString("uidRequest")!!, true)
+                        text = getString(R.string.stop_following)
+                    } else {
+                        viewModel.sendRequest(arguments?.getString("uidRequest")!!, false)
+                        viewModel.acceptRequest(arguments?.getString("uidRequest")!!, false)
+                        text = getString(R.string.follow)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun userObserver(adapter: PostAdapter) {
         viewModel.getInfoUser(arguments?.getString("uidRequest").toString())
             .observe(viewLifecycleOwner) { result ->
                 when (result) {
@@ -124,39 +163,6 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
                     }
                 }
             }
-
-        binding.apply {
-            acceptFollowinReq.apply {
-                setOnClickListener {
-                    Log.d(TAG, arguments?.getString("uidRequest")!!)
-                    viewModel.acceptRequest(arguments?.getString("uidRequest")!!, true)
-                    llPendingReq.visibility = View.GONE
-                    btnSettings.visibility = View.VISIBLE
-                    btnSettings.text = getString(R.string.stop_following)
-                }
-            }
-            deleteFollowingReq.apply {
-                setOnClickListener {
-                    Log.d(TAG, arguments?.getString("uidRequest")!!)
-                    viewModel.acceptRequest(arguments?.getString("uidRequest")!!, false)
-                    llPendingReq.visibility = View.GONE
-                    btnSettings.visibility = View.VISIBLE
-                    btnSettings.text = getString(R.string.follow)
-                }
-            }
-        }
-        binding.btnSettings.setOnClickListener {
-            binding.btnSettings.apply {
-                if (text == getString(R.string.follow)) {
-                    viewModel.sendRequest(arguments?.getString("uidRequest")!!, true)
-                    text = getString(R.string.stop_following)
-                } else {
-                    viewModel.sendRequest(arguments?.getString("uidRequest")!!, false)
-                    viewModel.acceptRequest(arguments?.getString("uidRequest")!!, false)
-                    text = getString(R.string.follow)
-                }
-            }
-        }
     }
 
     private fun isPendingRequestTo() {
@@ -192,6 +198,28 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
         }
     }
 
+    private fun showPost(adapter: PostAdapter) {
+        viewModel.getPostUser(arguments?.getString("uidRequest").toString())
+            .observe(viewLifecycleOwner) { result ->
+                when (result) {
+                    is Resource.Loading -> {
+                        binding.progressBar2.visibility = View.VISIBLE
+                    }
+                    is Resource.Success -> {
+                        binding.recyclerViewProfile.visibility = View.VISIBLE
+                        binding.progressBar2.visibility = View.GONE
+                        binding.tvNPost.visibility = View.VISIBLE
+                        binding.tvNPost.text =
+                            getString(R.string.num_post, result.data.size.toString())
+                        adapter.submitList(result.data)
+                    }
+                    is Resource.Failure -> {
+                        Log.d(TAG, result.exception.toString())
+                    }
+                }
+            }
+    }
+
     private fun seeVisitedPost(adapter: PostAdapter) {
         viewModel.followers.observe(viewLifecycleOwner) { followers ->
             Log.d(
@@ -213,33 +241,10 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
                     recyclerViewProfile.visibility = View.INVISIBLE
                     progressBar2.visibility = View.GONE
                     tvNPost.visibility = View.GONE
-                    //btnSettings.text = getString(R.string.follow)
                 }
 
             }
         }
-    }
-
-    private fun showPost(adapter: PostAdapter) {
-        viewModel.getPostUser(arguments?.getString("uidRequest").toString())
-            .observe(viewLifecycleOwner) { result ->
-                when (result) {
-                    is Resource.Loading -> {
-                        binding.progressBar2.visibility = View.VISIBLE
-                    }
-                    is Resource.Success -> {
-                        binding.recyclerViewProfile.visibility = View.VISIBLE
-                        binding.progressBar2.visibility = View.GONE
-                        binding.tvNPost.visibility = View.VISIBLE
-                        binding.tvNPost.text =
-                            getString(R.string.num_post, result.data.size.toString())
-                        adapter.submitList(result.data)
-                    }
-                    is Resource.Failure -> {
-                        Log.d(TAG, result.exception.toString())
-                    }
-                }
-            }
     }
 
     override fun onDestroy() {

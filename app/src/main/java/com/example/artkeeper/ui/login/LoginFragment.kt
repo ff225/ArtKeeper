@@ -59,7 +59,7 @@ class LoginFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         return binding.root
@@ -67,10 +67,7 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.loginButton.setOnClickListener {
-            createSignInIntent()
-        }
+        onClickListener()
     }
 
     private fun onSignInResult(result: FirebaseAuthUIAuthenticationResult) {
@@ -81,12 +78,16 @@ class LoginFragment : Fragment() {
             // Successfully signed in
             Log.i(TAG, "in onSignInResult, Logged!")
             val user = FirebaseAuth.getInstance().currentUser
-            Toast.makeText(requireContext(), "Welcome ${user!!.email}", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.num_post, user?.email.toString()),
+                Toast.LENGTH_LONG
+            ).show()
             userIsRegistered()
         } else {
             Toast.makeText(
                 requireContext(),
-                "Login necessario per utilizzare l'app.",
+                getText(R.string.login_error),
                 Toast.LENGTH_LONG
             ).show()
 
@@ -137,6 +138,13 @@ class LoginFragment : Fragment() {
                 }
                 else -> {}
             }
+        }
+    }
+
+
+    private fun onClickListener(){
+        binding.loginButton.setOnClickListener {
+            createSignInIntent()
         }
     }
 

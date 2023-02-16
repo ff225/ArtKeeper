@@ -8,6 +8,7 @@ import com.example.artkeeper.data.ImageFilter
 import com.example.artkeeper.databinding.ItemContainerFilterBinding
 import com.example.artkeeper.utils.ImageFilterListener
 
+
 class ImageFiltersAdapter(
     private val imageFilters: List<ImageFilter>,
     private val imageFilterListener: ImageFilterListener

@@ -27,7 +27,6 @@ class MainFragment : Fragment() {
 
     private val TAG: String = javaClass.simpleName
 
-
     private var _binding: FragmentMainBinding? = null
     private val binding: FragmentMainBinding
         get() = _binding!!
@@ -63,11 +62,6 @@ class MainFragment : Fragment() {
             findNavController().navigate(
                 MainFragmentDirections.actionMainFragmentToVisitedUserProfileFragment(nickname.uid)
             )
-            Toast.makeText(
-                requireContext(),
-                "nickname: ${nickname.nickName}, position: $position",
-                Toast.LENGTH_LONG
-            ).show()
         })
         recyclerView.adapter = adapter
 

@@ -77,9 +77,43 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        listeners()
+        setupObservers()
+    }
 
+    private fun listeners() {
+        binding.apply {
+            pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
+
+            pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
+
+            shareButton.setOnClickListener {
+                filteredBitmap.value?.let {
+                    viewModel.saveFilteredImage(it)
+                } ?: Toast.makeText(
+                    requireContext(),
+                    getText(R.string.error_photo_post),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            cancelButton.setOnClickListener { cancelAction() }
+
+            imageViewPost.setOnLongClickListener {
+                imageViewPost.setImageBitmap(originalBitmap)
+                return@setOnLongClickListener false
+            }
+
+            imageViewPost.setOnClickListener {
+                imageViewPost.setImageBitmap(filteredBitmap.value)
+            }
+
+        }
+    }
+
+    private fun setupObservers() {
         viewModel.user?.observe(viewLifecycleOwner) { user ->
-            if (user != null) {
+            user?.let {
                 Log.d(TAG, user.nickName)
 
                 Log.d(TAG, user.nameChild?.isNotEmpty().toString())
@@ -108,39 +142,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
 
         }
 
-        binding.apply {
-            pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
-            pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
-            shareButton.setOnClickListener {
-                filteredBitmap.value?.let {
-                    viewModel.saveFilteredImage(it)
-                } ?: Toast.makeText(
-                    requireContext(),
-                    "È necessario inserire una foto per pubblicare",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-            cancelButton.setOnClickListener { cancelAction() }
-
-            imageViewPost.setOnLongClickListener {
-                imageViewPost.setImageBitmap(originalBitmap)
-                return@setOnLongClickListener false
-            }
-
-            imageViewPost.setOnClickListener {
-                imageViewPost.setImageBitmap(filteredBitmap.value)
-            }
-
-        }
-
-        viewModel.description.observe(viewLifecycleOwner) { text ->
-            binding.textInputDescription.setText(text)
-        }
-
-        setupObservers()
-    }
-
-    private fun setupObservers() {
         viewModel.imagePreviewUiState.observe(viewLifecycleOwner) {
             val dataState = it ?: return@observe
 
@@ -194,7 +195,9 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
             }
         }
 
-
+        viewModel.description.observe(viewLifecycleOwner) { text ->
+            binding.textInputDescription.setText(text)
+        }
     }
 
     private fun savePost(): Observer<List<WorkInfo>> {
@@ -209,13 +212,13 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
                 if (WorkInfo.State.FAILED == workInfo.state)
                     Toast.makeText(
                         requireContext(),
-                        "Condivisione del post...fallita",
+                        getText(R.string.failed_sharing),
                         Toast.LENGTH_LONG
                     ).show()
                 else {
                     Toast.makeText(
                         requireContext(),
-                        "Condivisione del post...da observer",
+                        getText(R.string.success_sharing),
                         Toast.LENGTH_LONG
                     )
                         .show()
@@ -247,14 +250,8 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
                 Log.d("$TAG, PhotoPicker", "Selected URI: $uri")
-                //viewModel.setImageUri(saveImageToInternalStorage(uri))
-                //binding.imageViewPost.visibility = View.VISIBLE
-                //binding.imageViewPost.setImageURI(uri)
                 gpuImage = GPUImage(requireContext())
-                //imageFromUser = uri
-
                 viewModel.prepareImagePreview(uri)
-                //viewModel.setImageUri(uri)
             } else {
                 Log.d("$TAG, PhotoPicker", "No media selected")
             }
@@ -264,13 +261,9 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
         registerForActivityResult(ActivityResultContracts.TakePicture()) { isSuccess ->
             if (isSuccess) {
                 imageFromUser.let {
-                    //binding.imageViewPost.visibility = View.VISIBLE
-                    //binding.imageViewPost.setImageURI(it!!)
                     gpuImage = GPUImage(requireContext())
                     Log.d(TAG, it?.path.toString())
                     viewModel.prepareImagePreview(it!!)
-                    //viewModel.setImageUri(saveImageToInternalStorage(it!!))
-
                 }
             } else
                 imageFromUser = null

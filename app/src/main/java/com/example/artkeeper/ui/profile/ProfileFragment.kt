@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.NotificationCompat
 import androidx.core.app.ShareCompat
 import androidx.core.net.toUri
 import androidx.core.view.isGone
@@ -55,16 +54,8 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         recyclerView = binding.recyclerViewProfile
-        var builder = NotificationCompat.Builder(requireContext(), "PendingRequestFrom")
-            .setSmallIcon(R.drawable.ic_icon_app)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText("Hai ricevuto delle richieste di amicizia...")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
         val adapter = PostAdapter(PostAdapter.PostListener { post, position, option ->
-
             Log.d(TAG, "position: $position")
-
             if (option == "remove") {
                 viewModel.deletePost(post)
                 recyclerView.adapter!!.notifyItemRemoved(position)
@@ -83,12 +74,17 @@ class ProfileFragment : Fragment() {
                     }.createChooserIntent()
                 startActivity(shareIntent)
             }
-
         })
-
         recyclerView.adapter = adapter
         adapter.menu = R.menu.options_menu_profile
 
+        observer(adapter)
+        binding.btnSettings.setOnClickListener {
+            findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToSettingsFragment())
+        }
+    }
+
+    private fun observer(adapter:PostAdapter) {
         viewModel.user.observe(viewLifecycleOwner) { user ->
             val imageUri: Uri = user.photo.toUri()
             Glide.with(binding.imageProfile.context)
@@ -137,11 +133,8 @@ class ProfileFragment : Fragment() {
                 adapter.submitList(post)
             }
         }
-
-        binding.btnSettings.setOnClickListener {
-            findNavController().navigate(ProfileFragmentDirections.actionProfileFragmentToSettingsFragment())
-        }
     }
+
 
     override fun onDestroy() {
         _binding = null

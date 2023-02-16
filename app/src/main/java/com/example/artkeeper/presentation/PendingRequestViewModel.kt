@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
 class PendingRequestViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _pendingReqList = MutableLiveData<List<Nickname>>()
     val pendingReqList: LiveData<List<Nickname>>

@@ -1,12 +1,13 @@
 package com.example.artkeeper.data.datasource
 
-import com.example.artkeeper.data.UserDao
+import com.example.artkeeper.data.dao.UserDao
 import com.example.artkeeper.data.model.User
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+
 
 class UserLocalDataSource(
     private val userDao: UserDao,
@@ -27,7 +28,7 @@ class UserLocalDataSource(
 
     suspend fun addChild(uid: String, nChild: Int, nameChild: List<String>) =
         withContext(dispatcher) { userDao.addChild(uid, nChild, nameChild) }
-    
+
     fun getUser(uid: String): Flow<User>? = userDao.getUser(uid)
 
 

@@ -48,18 +48,9 @@ class RegistrationFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        requireActivity().onBackPressedDispatcher.addCallback(this) {
-            MaterialAlertDialogBuilder(requireContext()).setTitle("Annullare registrazione?")
-                .setPositiveButton(R.string.yes) { _, _ ->
-                    deleteRegistration()
-                }
-                .setNegativeButton(R.string.no) { dialog, _ ->
-                    dialog.cancel()
-                }.show()
-        }
-
+        cancelRegistration()
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,41 +58,32 @@ class RegistrationFragment : Fragment() {
     ): View {
         // Inflate the layout for this fragment
         _binding = FragmentRegistrationBinding.inflate(inflater, container, false)
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.textInputNickname.onFocusChangeListener =
-            View.OnFocusChangeListener { _, hasFocus ->
-                if (hasFocus)
-                    binding.textInputNickname.hint = "Eventuali spazi bianchi verranno rimossi"
-                else
-                    binding.textInputNickname.hint = ""
-            }
+        listener()
+    }
 
-        binding.confirmButton.setOnClickListener {
-            userRegistration()
+    private fun cancelRegistration() {
+        requireActivity().onBackPressedDispatcher.addCallback(this) {
+            MaterialAlertDialogBuilder(requireContext()).setTitle(getText(R.string.cancel_registration))
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    deleteRegistration()
+                }
+                .setNegativeButton(R.string.no) { dialog, _ ->
+                    dialog.cancel()
+                }.show()
         }
     }
 
-    override fun onResume() {
-        if (FirebaseAuth.getInstance().currentUser == null)
-            findNavController().navigate(R.id.profile)
-        super.onResume()
-    }
-
-    /**
-     * Registra l'utente all'applicazione.
-     * Salva le informazioni sul cloud e in local su Room.
-     */
     private fun userRegistration() {
 
         if (!checkUserInfo()) {
             createUser()
             isRegistered = true
             viewModel.userRegistration(name, lastName, nickName)
-                .observe(viewLifecycleOwner, Observer { result ->
+                .observe(viewLifecycleOwner, { result ->
                     when (result) {
                         is Resource.Loading -> Log.d(TAG, "caricamento")
                         is Resource.Success -> {
@@ -132,23 +114,24 @@ class RegistrationFragment : Fragment() {
         val networkInfo = connMgr.activeNetworkInfo
         if (networkInfo?.isConnected == null) {
             hasError = true
-            Toast.makeText(requireContext(), "Connessione assente.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.no_connection), Toast.LENGTH_SHORT)
+                .show()
         }
         if (binding.textInputName.text.toString().trim()
                 .isEmpty() || !(binding.textInputName.text.toString()
                 .matches(regex))
         ) {
-            binding.textInputName.error = "Nome non valido"
+            binding.textInputName.error = getText(R.string.value_not_valid)
             hasError = true
         }
         if (binding.textInputLastname.text.toString().trim()
                 .isEmpty() || !(binding.textInputLastname.text.toString().matches(regex))
         ) {
-            binding.textInputLastname.error = "Cognome non valido"
+            binding.textInputLastname.error = getText(R.string.value_not_valid)
             hasError = true
         }
         if (binding.textInputNickname.text.toString().trim().isEmpty()) {
-            binding.textInputNickname.error = "Il campo è vuoto"
+            binding.textInputNickname.error = getString(R.string.value_not_valid)
             hasError = true
         }
         return hasError
@@ -174,7 +157,7 @@ class RegistrationFragment : Fragment() {
                     }
                     Toast.makeText(
                         requireContext(),
-                        "Operazione in corso...",
+                        getText(R.string.loading),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -187,13 +170,33 @@ class RegistrationFragment : Fragment() {
                 is Resource.Failure -> {
                     Toast.makeText(
                         requireContext(),
-                        "Devi essere connesso ad internet per completare questa operazione.",
+                        getText(R.string.no_connection),
                         Toast.LENGTH_LONG
                     )
                         .show()
                 }
             }
         }
+    }
+
+    private fun listener() {
+        binding.textInputNickname.onFocusChangeListener =
+            View.OnFocusChangeListener { _, hasFocus ->
+                if (hasFocus)
+                    binding.textInputNickname.hint = getText(R.string.hint_textview_nickname)
+                else
+                    binding.textInputNickname.hint = ""
+            }
+
+        binding.confirmButton.setOnClickListener {
+            userRegistration()
+        }
+    }
+
+    override fun onResume() {
+        if (FirebaseAuth.getInstance().currentUser == null)
+            findNavController().navigate(R.id.profile)
+        super.onResume()
     }
 
     override fun onPause() {

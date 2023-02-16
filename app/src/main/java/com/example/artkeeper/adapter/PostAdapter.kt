@@ -38,7 +38,7 @@ class PostAdapter(
             binding.apply {
                 nickNameItem.text = nickName
                 childNameItem.apply {
-                    if (post.sketchedBy.isNullOrEmpty() || post.sketchedBy.equals("null"))
+                    if (post.sketchedBy.isNullOrEmpty() || post.sketchedBy == "null")
                         visibility = View.GONE
                     else
                         text = resources.getString(R.string.sketched_by, post.sketchedBy)
@@ -96,8 +96,8 @@ class PostAdapter(
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): PostAdapter.PostItemViewHolder {
-        return PostAdapter.PostItemViewHolder(
+    ): PostItemViewHolder {
+        return PostItemViewHolder(
             PostItemBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
@@ -107,7 +107,7 @@ class PostAdapter(
     }
 
     override fun onBindViewHolder(
-        holder: PostAdapter.PostItemViewHolder,
+        holder: PostItemViewHolder,
         position: Int
     ) {
         Log.d("PostAdapter", position.toString())

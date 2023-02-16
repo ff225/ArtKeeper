@@ -15,11 +15,13 @@ import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileNotFoundException
 
+
 class PostRemoteDataSource {
     private val TAG = javaClass.simpleName
 
     private val dbPost = databaseRef.getReference("post")
     private val storageRef = Firebase.storage.reference
+
 
     suspend fun saveImageRemote(uid: String, imagePath: String): Result<Unit> {
 
@@ -42,7 +44,9 @@ class PostRemoteDataSource {
         }
     }
 
+
     suspend fun insertPost(uid: String, post: PostToRemote): Result<Unit> {
+
         return try {
             dbPost.child(uid).push().setValue(post).await()
             Result.success(Unit)
@@ -51,12 +55,12 @@ class PostRemoteDataSource {
                 is DatabaseException -> Result.failure(e.cause!!)
                 else -> Result.failure(Throwable("Impossibile salvare il post..."))
             }
-
         }
-
     }
 
+
     suspend fun getAllPostRemote(uid: String): Result<List<Post>> {
+
         val postList = mutableListOf<Post>()
         val posts = dbPost.child(uid).get().await()
         for (post in posts.children) {
@@ -89,7 +93,6 @@ class PostRemoteDataSource {
                 storageRef.child("images/$uid/$imagePath").delete().await()
             }
             dbPost.child(uid).removeValue().await()
-
             Result.success(Unit)
         } catch (e: Exception) {
             when (e) {
@@ -112,6 +115,7 @@ class PostRemoteDataSource {
         idPostRemote: String,
         imagePath: String
     ): Result<Unit> {
+
         return try {
             Log.d(TAG, imagePath)
             dbPost.child(uid).child(idPostRemote).removeValue().await()

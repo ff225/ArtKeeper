@@ -123,15 +123,6 @@ class EditImageRepositoryImpl(private val ctx: Context) : EditImageRepository {
     }
 
 
-    /*
-    getInputStreamFromUri(imageUri)?.let {
-        val originalBitmap = BitmapFactory.decodeStream(it)
-        val width = ctx.resources.displayMetrics.widthPixels
-        val height = ((originalBitmap.height * width) / originalBitmap.width)
-        return Bitmap.createScaledBitmap(originalBitmap, width, height, false)
-    } ?: return null*/
-
-
     private fun getInputStreamFromUri(uri: Uri): InputStream? {
         return ctx.contentResolver.openInputStream(uri)
     }
@@ -146,6 +137,7 @@ class EditImageRepositoryImpl(private val ctx: Context) : EditImageRepository {
             null
         }
     }
+
 
     private fun saveFile(file: File, bitmap: Bitmap) {
         with(FileOutputStream(file)) {

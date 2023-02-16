@@ -48,7 +48,7 @@ class UserRepository(
 
     fun getAllNicknamePendingReq(pendingReq: List<String>): Flow<List<Nickname>> =
         userRemoteDataSource.getAllNicknamePendingReq(pendingReq)
-    
+
     fun getPendingReqFrom(): Flow<List<String>> = userRemoteDataSource.getPendingReqFrom()
 
     fun getPendingReqTo(): Flow<List<String>> = userRemoteDataSource.getPendingReqTo()

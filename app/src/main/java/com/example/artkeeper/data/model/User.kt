@@ -4,7 +4,7 @@ import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 
-@Entity(tableName = "users", primaryKeys = ["uid"])
+@Entity(tableName = "user", primaryKeys = ["uid"])
 data class User(
     @NonNull @ColumnInfo(name = "uid") val uid: String,
     @NonNull @ColumnInfo(name = "first_name") val firstName: String,

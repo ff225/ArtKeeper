@@ -5,13 +5,10 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-// https://medium.com/androiddevelopers/7-pro-tips-for-room-fbadea4bfbd1#3e94
-
 @Entity(
     tableName = "post_user",
 )
 data class Post(
-    //@PrimaryKey(autoGenerate = true) val id: Int = 0,
     @PrimaryKey @ColumnInfo(name = "id_post") val idPost: String,
     @NonNull @ColumnInfo(name = "image_path") val imagePath: String,
     @ColumnInfo(name = "sketched_by") val sketchedBy: String?,

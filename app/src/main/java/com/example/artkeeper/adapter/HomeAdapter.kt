@@ -12,10 +12,10 @@ class HomeAdapter(private val clickListener: HomeListener) :
     ListAdapter<Nickname, HomeAdapter.HomeItemViewHolder>(HomeDiffCallback()) {
     class HomeItemViewHolder(private val binding: NicknameItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(nickname: Nickname, clickListener: HomeListener) {
-            binding.nicknameTextView.text = nickname.nickName
+        fun bind(nickName: Nickname, clickListener: HomeListener) {
+            binding.nicknameTextView.text = nickName.nickName
             binding.nicknameCardView.setOnClickListener {
-                clickListener.clickListener(nickname, adapterPosition)
+                clickListener.clickListener(nickName, adapterPosition)
             }
         }
     }

@@ -51,15 +51,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
-        binding.textInputNickname.onFocusChangeListener =
-            View.OnFocusChangeListener { _, hasFocus ->
-                if (hasFocus)
-                    binding.textInputNickname.hint = "Eventuali spazi bianchi verranno rimossi"
-                else
-                    binding.textInputNickname.hint = ""
-            }
-
+        listener()
         viewModel.user.observe(viewLifecycleOwner) {
             binding.apply {
                 textInputName.setText(it.firstName)
@@ -68,12 +60,23 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
             }
             prevNickname = it.nickName
         }
+    }
 
-        binding.confirmButton.setOnClickListener {
+    private fun listener() {
 
-            Log.d(TAG, "in confirmButton, previous name: $prevNickname")
-            if (!checkUserInfo()) {
-                updateInfo(prevNickname)
+        binding.apply {
+            textInputNickname.onFocusChangeListener =
+                View.OnFocusChangeListener { _, hasFocus ->
+                    if (hasFocus)
+                        binding.textInputNickname.hint = "Eventuali spazi bianchi verranno rimossi"
+                    else
+                        binding.textInputNickname.hint = ""
+                }
+            confirmButton.setOnClickListener {
+                Log.d(TAG, "in confirmButton, previous name: $prevNickname")
+                if (!checkUserInfo()) {
+                    updateInfo(prevNickname)
+                }
             }
         }
     }
@@ -82,7 +85,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         if (!checkUserInfo()) {
             createUser()
             viewModel.updateUserInfo(name, lastName, nickName, prevNickname)
-                .observe(viewLifecycleOwner, Observer { result ->
+                .observe(viewLifecycleOwner, { result ->
                     when (result) {
                         is Resource.Loading -> Log.d(TAG, "caricamento...")
                         is Resource.Success -> {
@@ -103,7 +106,6 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         nickName = binding.textInputNickname.text.toString().lowercase().trim()
             .filterNot { it.isWhitespace() }
     }
-
 
     private fun checkUserInfo(): Boolean {
         var hasError = false

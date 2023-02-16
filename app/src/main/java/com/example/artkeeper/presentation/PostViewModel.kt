@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
 
+
 class PostViewModel(
     userRepo: UserRepository,
     private val editImageRepository: EditImageRepository,
@@ -24,8 +25,43 @@ class PostViewModel(
 ) :
     ViewModel() {
 
+    private val uid: String = firebaseAuth.uid.toString()
+    private var _user: LiveData<User>? = userRepo.getUserLocal(uid)?.asLiveData()
+    val user: LiveData<User>? = _user
 
-    // region:: Prepare image preview
+    val savePostRemoteWorksInfo: LiveData<List<WorkInfo>> =
+        workManager.getWorkInfosForUniqueWorkLiveData("savePostRequest")
+
+    // region:: set informazioni post
+    private var _imageUri: MutableLiveData<Uri?> = MutableLiveData(null)
+    private var _childName: MutableLiveData<String?> = MutableLiveData(null)
+    private var _description: MutableLiveData<String?> = MutableLiveData(null)
+    val description: LiveData<String?>
+        get() = _description
+
+    private var _timestamp: Long = 0L
+
+    fun setImageUri(imageUri: Uri) {
+        _imageUri.value = imageUri
+    }
+
+    fun setDescription(description: String) {
+        _description.value = description.trim()
+    }
+
+    fun setChildName(name: String?) {
+        _childName.value = name
+    }
+
+    private fun getTimestamp(): Long {
+        val calendar = Calendar.getInstance()
+        return Date(calendar.time.time).time
+
+    }
+    //endregion
+
+
+    // region:: Image preview
     private val _imagePreviewDataState = MutableLiveData<ImagePreviewState>()
     val imagePreviewUiState: LiveData<ImagePreviewState> get() = _imagePreviewDataState
 
@@ -35,7 +71,7 @@ class PostViewModel(
                 emitImagePreviewState(true)
                 editImageRepository.prepareImagePreview(imageUri)
             }.onSuccess {
-                    emitImagePreviewState(bitmap = it)
+                emitImagePreviewState(bitmap = it)
             }.onFailure {
                 emitImagePreviewState(error = it.message)
             }
@@ -55,7 +91,8 @@ class PostViewModel(
 
     // endregion
 
-    // region:: Load image filters
+
+    // region:: Carica filtri immagine
     private val _imageFiltersDataState = MutableLiveData<ImageFiltersDataState>()
     val imageFiltersUiState get() = _imageFiltersDataState
 
@@ -99,7 +136,8 @@ class PostViewModel(
 
     // endregion
 
-    // region:: Save filtered image
+
+    // region:: Salva immagine
     data class SaveFilteredImageDataState(
         val isLoading: Boolean,
         val uri: Uri?,
@@ -133,44 +171,11 @@ class PostViewModel(
     }
     // endregion
 
-    private val uid: String = firebaseAuth.uid.toString()
-    private var _user: LiveData<User>? = userRepo.getUserLocal(uid)?.asLiveData()
-    val user: LiveData<User>? = _user
 
-    private var _imageUri: MutableLiveData<Uri?> = MutableLiveData(null)
-    private var _childName: MutableLiveData<String?> = MutableLiveData(null)
-    private var _description: MutableLiveData<String?> = MutableLiveData(null)
-    val description: LiveData<String?>
-        get() = _description
-    private var _timestamp: Long = 0L
-
-    val savePostRemoteWorksInfo: LiveData<List<WorkInfo>> =
-        workManager.getWorkInfosForUniqueWorkLiveData("savePostRequest")
-
-    fun setImageUri(imageUri: Uri) {
-        _imageUri.value = imageUri
-    }
-
-    fun setDescription(description: String) {
-        _description.value = description.trim()
-    }
-
-    fun setChildName(name: String?) {
-        _childName.value = name
-    }
-
-    fun reset() {
-        _imageUri.value = null
-        _description.value = null
-        _childName.value = null
-        _timestamp = 0L
-    }
-
-    fun checkPost(): Boolean {
-        if (_imageUri.value == null)
-            return false
-
-        return true
+    //region:: inserisci nuovo post
+    fun insert() {
+        savePostWork()
+        reset()
     }
 
     private fun createPostRemote(): PostToRemote {
@@ -181,20 +186,6 @@ class PostViewModel(
             _description.value,
             _timestamp.toString()
         )
-    }
-
-    private fun getLatestPost(): OneTimeWorkRequest {
-        val constraint = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        return OneTimeWorkRequestBuilder<GetLatestPost>().setInputData(workDataOf("uid" to uid))
-            .setConstraints(constraint)
-            .setBackoffCriteria(
-                BackoffPolicy.LINEAR,
-                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                TimeUnit.MILLISECONDS
-            ).addTag("getLatestPostWorker").build()
     }
 
     private fun savePostWork() {
@@ -227,15 +218,35 @@ class PostViewModel(
             .enqueue()
     }
 
-    fun insert() {
-        savePostWork()
-        reset()
+    private fun getLatestPost(): OneTimeWorkRequest {
+        val constraint = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        return OneTimeWorkRequestBuilder<GetLatestPost>().setInputData(workDataOf("uid" to uid))
+            .setConstraints(constraint)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            ).addTag("getLatestPostWorker").build()
+    }
+    //endregion
+
+
+    fun checkPost(): Boolean {
+        if (_imageUri.value == null)
+            return false
+
+        return true
     }
 
-    private fun getTimestamp(): Long {
-        val calendar = Calendar.getInstance()
-        return Date(calendar.time.time).time
 
+    fun reset() {
+        _imageUri.value = null
+        _description.value = null
+        _childName.value = null
+        _timestamp = 0L
     }
 
 }

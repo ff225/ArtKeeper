@@ -1,4 +1,4 @@
-package com.example.artkeeper.data
+package com.example.artkeeper.data.dao
 
 import androidx.room.Dao
 import androidx.room.Query
@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 abstract class UserDao : BaseDao<User> {
 
-    @Query("UPDATE users SET num_child=:nChild, name_child=:nameChild WHERE uid=:uid")
+    @Query("UPDATE user SET num_child=:nChild, name_child=:nameChild WHERE uid=:uid")
     abstract suspend fun addChild(uid: String, nChild: Int, nameChild: List<String>)
 
-    @Query("SELECT count(*) FROM users WHERE uid= :uid")
+    @Query("SELECT count(*) FROM user WHERE uid= :uid")
     abstract suspend fun checkUser(uid: String): Boolean
 
-    @Query("SELECT * FROM users WHERE uid=:uid")
+    @Query("SELECT * FROM user WHERE uid=:uid")
     abstract fun getUser(uid: String): Flow<User>?
 
 

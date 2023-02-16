@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-
 class VisitedUserProfileViewModel(
     private val userRepository: UserRepository,
     private val postRepository: PostRepository,
@@ -55,6 +54,7 @@ class VisitedUserProfileViewModel(
         }
     }
 
+
     fun sendRequest(uidRequest: String, isFollowingRequest: Boolean) {
         val constraint = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -79,6 +79,7 @@ class VisitedUserProfileViewModel(
             .beginUniqueWork("SendRequestFollowing", ExistingWorkPolicy.REPLACE, sendRequest)
             .enqueue()
     }
+
 
     fun acceptRequest(uidRequest: String, isAcceptRequest: Boolean) {
         val constraint = Constraints.Builder()
@@ -109,6 +110,19 @@ class VisitedUserProfileViewModel(
             .enqueue()
     }
 
+
+    fun getPostUser(uidRequest: String) = liveData {
+        emit(Resource.Loading())
+
+        postRepository.getAllPostRemote(uidRequest).onSuccess {
+            emit(Resource.Success(it))
+        }.onFailure {
+            emit(Resource.Failure(Exception()))
+        }
+    }
+
+
+    //region:: observer
     private fun observeFollower() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -138,17 +152,7 @@ class VisitedUserProfileViewModel(
             }
         }
     }
-
-    fun getPostUser(uidRequest: String) = liveData {
-        emit(Resource.Loading())
-
-        postRepository.getAllPostRemote(uidRequest).onSuccess {
-            emit(Resource.Success(it))
-        }.onFailure {
-            emit(Resource.Failure(Exception()))
-        }
-
-    }
+    //endregion
 }
 
 @Suppress("UNCHECKED_CAST")

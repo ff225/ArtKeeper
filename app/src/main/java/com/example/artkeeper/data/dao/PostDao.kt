@@ -1,4 +1,4 @@
-package com.example.artkeeper.data
+package com.example.artkeeper.data.dao
 
 import androidx.room.Dao
 import androidx.room.Query

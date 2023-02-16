@@ -45,7 +45,7 @@ class SettingsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
@@ -53,33 +53,32 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-
-        binding.btnChangeInfo.setOnClickListener {
-            findNavController().navigate(R.id.action_settingsFragment_to_updateInfoFragment)
-        }
-
-        binding.btnAddSon.setOnClickListener {
-            showDialogAddChild()
-        }
-
+        listener()
         viewModel.user.observe(viewLifecycleOwner) { user ->
             binding.btnRmvSon.setOnClickListener {
                 if (user.nameChild != null && user.nChild != 0)
                     showDialogRemoveChild(user.nameChild.toTypedArray())
-                else
-                    Toast.makeText(
-                        requireContext(),
-                        "Nessun figlio da cancellare...",
-                        Toast.LENGTH_LONG
-                    ).show()
             }
         }
-        binding.btnDeleteAccount.setOnClickListener {
-            showDeleteAccount()
-        }
-        binding.btnLogout.setOnClickListener {
-            viewModel.deleteUserLocalWork()
-            viewModel.logoutUserWorkInfo.observe(viewLifecycleOwner, logout())
+    }
+
+    private fun listener() {
+        binding.apply {
+            btnChangeInfo.setOnClickListener {
+                findNavController().navigate(R.id.action_settingsFragment_to_updateInfoFragment)
+            }
+
+            btnAddSon.setOnClickListener {
+                showDialogAddChild()
+            }
+
+            btnDeleteAccount.setOnClickListener {
+                showDeleteAccount()
+            }
+            btnLogout.setOnClickListener {
+                viewModel.deleteUserLocalWork()
+                viewModel.logoutUserWorkInfo.observe(viewLifecycleOwner, logout())
+            }
         }
     }
 
@@ -159,7 +158,6 @@ class SettingsFragment : Fragment() {
 
         }
     }
-
 
     private fun deleteAccount(): Observer<List<WorkInfo>> {
         return Observer { listOfWorkInfo ->

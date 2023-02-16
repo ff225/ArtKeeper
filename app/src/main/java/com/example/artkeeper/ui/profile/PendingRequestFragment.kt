@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -44,10 +43,6 @@ class PendingRequestFragment : Fragment(R.layout.fragment_main) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d(
-            "${javaClass.simpleName}, test",
-            arguments?.getStringArray("uidList")!!.toList().toString()
-        )
         viewModel.observePendingReq(arguments?.getStringArray("uidList")!!.toList())
         recyclerView = binding.recyclerViewHome
         val adapter = HomeAdapter(HomeAdapter.HomeListener { nickname, position ->
@@ -56,11 +51,6 @@ class PendingRequestFragment : Fragment(R.layout.fragment_main) {
                     nickname.uid
                 )
             )
-            Toast.makeText(
-                requireContext(),
-                "nickname: ${nickname.nickName}, position: $position",
-                Toast.LENGTH_LONG
-            ).show()
         })
         recyclerView.adapter = adapter
 

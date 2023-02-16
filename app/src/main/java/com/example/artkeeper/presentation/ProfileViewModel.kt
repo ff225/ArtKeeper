@@ -45,8 +45,6 @@ class ProfileViewModel(
     val logoutUserWorkInfo: LiveData<List<WorkInfo>>
 
     init {
-        //reset()
-
         deleteRemoteUserWorksInfo =
             workManager.getWorkInfosForUniqueWorkLiveData("DeleteRemoteUserWorker")
 
@@ -61,8 +59,6 @@ class ProfileViewModel(
             postRepo.getAllPostUserRemote(firebaseAuth.uid.toString())
 
         }
-        Log.d(TAG, "${_user.value?.nChild}, ${_user.value?.nameChild?.size} ")
-        Log.d(TAG, "in init, image profile path: ${firebaseAuth.currentUser?.photoUrl.toString()}")
     }
 
     private fun createUser(name: String, lastName: String, nickName: String): User {
@@ -77,6 +73,20 @@ class ProfileViewModel(
         )
     }
 
+    private fun inputDataWorker(user: User) =
+        workDataOf(
+            "uid" to user.uid,
+            "nickname" to user.nickName,
+            "firstName" to user.firstName,
+            "lastName" to user.lastName,
+            "photoUser" to user.photo,
+            "nChild" to user.nChild,
+            "name_child" to user.nameChild?.toTypedArray(),
+        )
+
+
+    // region:: login e registrazione utente
+
     private fun createUserFromRemote(uo: UserOnline) = User(
         uo.uid!!,
         uo.firstName!!,
@@ -86,6 +96,10 @@ class ProfileViewModel(
         uo.nChild!!,
         uo.nameChild ?: listOf(),
     )
+
+    private suspend fun insertUser(user: User) {
+        userRepo.insertUserLocal(user)
+    }
 
     fun checkUser() = liveData {
         emit(Resource.Loading())
@@ -100,6 +114,84 @@ class ProfileViewModel(
 
     private suspend fun getUserRemote(uid: String) = userRepo.getUserRemote(uid).getOrThrow()
 
+    fun userRegistration(name: String, lastName: String, nickName: String) = liveData {
+        emit(Resource.Loading())
+
+        userRepo.checkNicknameRemote(nickName).onSuccess { isNotUsed ->
+            if (isNotUsed) {
+                insertUser(createUser(name, lastName, nickName))
+                emit(
+                    Resource.Success(
+                        userRepo.insertUserRemote(
+                            createUser(
+                                name,
+                                lastName,
+                                nickName
+                            )
+                        )
+                    )
+                )
+            }
+        }.onFailure {
+            emit(Resource.Failure(Exception("Nickname Utilizzato")))
+        }
+    }
+
+    fun deleteRegistration() = liveData(Dispatchers.IO) {
+        emit(Resource.Loading())
+        try {
+            FirebaseAuth.getInstance().currentUser?.delete()!!.await()
+            emit(Resource.Success("Operazione effettuata con successo."))
+        } catch (e: Exception) {
+            emit(Resource.Failure(e))
+        }
+    }
+
+    // endregion
+
+
+    // region:: logout
+
+    private fun deleteUserLocal(): OneTimeWorkRequest =
+        OneTimeWorkRequestBuilder<DeleteLocalUser>()
+            .setInputData(
+                inputDataWorker(
+                    _user.value!!
+                )
+            )
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+
+    fun deleteUserLocalWork() {
+        workManager.cancelAllWorkByTag("savePostRequest")
+        workManager.cancelUniqueWork("getLatestPostWorker")
+        workManager
+            .beginUniqueWork(
+                "DeleteLocalAccountUserWorker",
+                ExistingWorkPolicy.REPLACE,
+                deleteUserLocal()
+            )
+            .enqueue()
+    }
+
+    private fun deleteUserRemote(): OneTimeWorkRequest {
+        val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+        return OneTimeWorkRequestBuilder<DeleteRemoteUser>().setConstraints(constraint)
+            .setBackoffCriteria(
+                BackoffPolicy.LINEAR,
+                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                TimeUnit.MILLISECONDS
+            ).build()
+    }
+
+    // endregion
+
+
+    // region:: aggiungi/rimuovi figlio
     fun addChild(name: String) {
         val nameChild = _user.value?.nameChild as MutableList<String>
         nameChild.add(name)
@@ -148,18 +240,10 @@ class ProfileViewModel(
 
 
     }
+    // endregion
 
-    private fun inputDataWorker(user: User) =
-        workDataOf(
-            "uid" to user.uid,
-            "nickname" to user.nickName,
-            "firstName" to user.firstName,
-            "lastName" to user.lastName,
-            "photoUser" to user.photo,
-            "nChild" to user.nChild,
-            "name_child" to user.nameChild?.toTypedArray(),
-        )
 
+    // region:: update info utente
     fun updateUserInfo(name: String, lastName: String, nickName: String, prevNickname: String) =
         liveData {
             emit(Resource.Loading())
@@ -222,33 +306,10 @@ class ProfileViewModel(
 
     }
 
-    private suspend fun insertUser(user: User) {
-        userRepo.insertUserLocal(user)
-    }
+    // endregion
 
-    fun userRegistration(name: String, lastName: String, nickName: String) = liveData {
-        emit(Resource.Loading())
 
-        userRepo.checkNicknameRemote(nickName).onSuccess { isNotUsed ->
-            if (isNotUsed) {
-                insertUser(createUser(name, lastName, nickName))
-                emit(
-                    Resource.Success(
-                        userRepo.insertUserRemote(
-                            createUser(
-                                name,
-                                lastName,
-                                nickName
-                            )
-                        )
-                    )
-                )
-            }
-        }.onFailure {
-            emit(Resource.Failure(Exception("Nickname Utilizzato")))
-        }
-    }
-
+    // region:: cancella post utente
 
     fun deletePost(post: Post) {
         deletePostRemote(post.idPost, post.imagePath)
@@ -279,53 +340,10 @@ class ProfileViewModel(
         ).enqueue()
     }
 
-    fun deleteRegistration() = liveData(Dispatchers.IO) {
-        emit(Resource.Loading())
-        try {
-            FirebaseAuth.getInstance().currentUser?.delete()!!.await()
-            emit(Resource.Success("Operazione effettuata con successo."))
-        } catch (e: Exception) {
-            emit(Resource.Failure(e))
-        }
-    }
+    // endregion
 
-    private fun deleteUserLocal(): OneTimeWorkRequest =
-        OneTimeWorkRequestBuilder<DeleteLocalUser>()
-            .setInputData(
-                inputDataWorker(
-                    _user.value!!
-                    //createUser(firebaseAuth.uid.toString())
-                )
-            )
-            .setBackoffCriteria(
-                BackoffPolicy.LINEAR,
-                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                TimeUnit.MILLISECONDS
-            )
-            .build()
 
-    fun deleteUserLocalWork() {
-        workManager.cancelAllWorkByTag("savePostRequest")
-        workManager.cancelUniqueWork("getLatestPostWorker")
-        workManager
-            .beginUniqueWork(
-                "DeleteLocalAccountUserWorker",
-                ExistingWorkPolicy.REPLACE,
-                deleteUserLocal()
-            )
-            .enqueue()
-    }
-
-    private fun deleteUserRemote(): OneTimeWorkRequest {
-        val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
-        return OneTimeWorkRequestBuilder<DeleteRemoteUser>().setConstraints(constraint)
-            .setBackoffCriteria(
-                BackoffPolicy.LINEAR,
-                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                TimeUnit.MILLISECONDS
-            ).build()
-    }
-
+    // region:: rimuovi utente dal social
     private fun deleteAllPostRemote(): OneTimeWorkRequest {
         val constraint = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
         return OneTimeWorkRequestBuilder<DeleteAllPostRemote>().setConstraints(constraint)
@@ -348,6 +366,10 @@ class ProfileViewModel(
             .then(deleteUserLocal()).enqueue()
     }
 
+    // endregion
+
+    
+    // region:: observer
     private fun observeUser() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -377,6 +399,8 @@ class ProfileViewModel(
             }
         }
     }
+
+    //endregion
 }
 
 @Suppress("UNCHECKED_CAST")
