@@ -1,13 +1,21 @@
 # ArtKeeper
+
 Progetto programmazione mobile
+
 ### Caratteristiche
+
 - **Autenticazione con Firebase**: l'utente può registrarsi utilizzando le credenziali di
   Facebook/Google;
-- **Aggiungere i figli all'app**: l'utente può aggiungere uno o più figli al
-  profilo. È necessario solo il nome;
-- **Upload dei disegni**: l'utente può di scattare una foto/scegliere dalla galleria il
-  disegno che vuole postare;
+- **Aggiungere i figli all'app**: l'utente può aggiungere uno o più figli al profilo. È necessario
+  solo il nome;
+- **Upload dei disegni**: l'utente può di scattare una foto/scegliere dalla galleria il disegno che
+  vuole postare;
     - Ogni post contiene la foto, una descrizione (opzionale) e il nome del figlio (opzionale).
-- **Photo feed**: l'utente può visualizzare in ordine cronologico inverso i
-  disegni che ha caricato; <br> Ogni post è composto dalla data di pubblicazione, e opzionalmente, una
-  descrizione e il nome del figlio.
+- **Photo feed**: l'utente può visualizzare in ordine cronologico inverso i disegni che ha
+  caricato; <br> Ogni post è composto dalla data di pubblicazione, e opzionalmente, una descrizione
+  e il nome del figlio;
+- **Condivisione del post**: l'utente può condividere il post su piattaforme di
+  messaggistica (whatsapp, telegram, signal...);
+- **Cercare e seguire amici**: l'utente può cercare e seguire le persone
+  iscritte all'app utilizzando il nickname. La richiesta di amicizia comporta l'invio di una
+  notifica.
