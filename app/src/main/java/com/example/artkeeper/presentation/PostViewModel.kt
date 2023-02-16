@@ -1,30 +1,143 @@
 package com.example.artkeeper.presentation
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.*
 import androidx.work.*
+import com.example.artkeeper.data.ImageFilter
 import com.example.artkeeper.data.model.PostToRemote
 import com.example.artkeeper.data.model.User
+import com.example.artkeeper.data.repository.EditImageRepository
 import com.example.artkeeper.data.repository.UserRepository
 import com.example.artkeeper.utils.Constants.firebaseAuth
 import com.example.artkeeper.workers.GetLatestPost
 import com.example.artkeeper.workers.SavePostRemote
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 class PostViewModel(
     userRepo: UserRepository,
+    private val editImageRepository: EditImageRepository,
     private val workManager: WorkManager
 ) :
     ViewModel() {
+
+
+    // region:: Prepare image preview
+    private val _imagePreviewDataState = MutableLiveData<ImagePreviewState>()
+    val imagePreviewUiState: LiveData<ImagePreviewState> get() = _imagePreviewDataState
+
+    fun prepareImagePreview(imageUri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            kotlin.runCatching {
+                emitImagePreviewState(true)
+                editImageRepository.prepareImagePreview(imageUri)
+            }.onSuccess {
+                    emitImagePreviewState(bitmap = it)
+            }.onFailure {
+                emitImagePreviewState(error = it.message)
+            }
+        }
+    }
+
+    private fun emitImagePreviewState(
+        isLoading: Boolean = false,
+        bitmap: Bitmap? = null,
+        error: String? = null
+    ) {
+        val dataState = ImagePreviewState(isLoading, bitmap, error)
+        _imagePreviewDataState.postValue(dataState)
+    }
+
+    data class ImagePreviewState(val isLoading: Boolean, val bitmap: Bitmap?, val error: String?)
+
+    // endregion
+
+    // region:: Load image filters
+    private val _imageFiltersDataState = MutableLiveData<ImageFiltersDataState>()
+    val imageFiltersUiState get() = _imageFiltersDataState
+
+
+    fun loadImageFilters(originalImage: Bitmap) {
+        viewModelScope.launch(Dispatchers.IO) {
+            kotlin.runCatching {
+                emitImageFiltersUiState(isLoading = true)
+                editImageRepository.getImageFilters(getPreviewImage(originalImage))
+            }.onSuccess { imageFilters ->
+                emitImageFiltersUiState(imageFilters = imageFilters)
+            }.onFailure {
+                emitImageFiltersUiState(error = it.message)
+            }
+        }
+    }
+
+    private fun getPreviewImage(originalImage: Bitmap): Bitmap {
+        return kotlin.runCatching {
+            val previewWidth = 80
+            val previewHeight = originalImage.height * previewWidth / originalImage.width
+            Bitmap.createScaledBitmap(originalImage, previewWidth, previewHeight, false)
+
+        }.getOrDefault(originalImage)
+    }
+
+    private fun emitImageFiltersUiState(
+        isLoading: Boolean = false,
+        imageFilters: List<ImageFilter>? = null,
+        error: String? = null
+    ) {
+        val dataState = ImageFiltersDataState(isLoading, imageFilters, error)
+        _imageFiltersDataState.postValue(dataState)
+    }
+
+    data class ImageFiltersDataState(
+        val isLoading: Boolean,
+        val imageFilters: List<ImageFilter>?,
+        val error: String?
+    )
+
+    // endregion
+
+    // region:: Save filtered image
+    data class SaveFilteredImageDataState(
+        val isLoading: Boolean,
+        val uri: Uri?,
+        val error: String?
+    )
+
+    private val _saveFilteredImageDataState = MutableLiveData<SaveFilteredImageDataState>()
+    val saveFilteredImageDataState: LiveData<SaveFilteredImageDataState>
+        get() = _saveFilteredImageDataState
+
+    private fun emitSaveFilteredImage(
+        isLoading: Boolean = false,
+        uri: Uri? = null,
+        error: String? = null
+    ) {
+        val dataState = SaveFilteredImageDataState(isLoading, uri, error)
+        _saveFilteredImageDataState.postValue(dataState)
+    }
+
+    fun saveFilteredImage(filteredBitmap: Bitmap) {
+        viewModelScope.launch(Dispatchers.IO) {
+            kotlin.runCatching {
+                emitSaveFilteredImage(isLoading = true)
+                editImageRepository.saveFilteredImage(filteredBitmap)
+            }.onSuccess {
+                emitSaveFilteredImage(uri = it)
+            }.onFailure {
+                emitSaveFilteredImage(error = it.message)
+            }
+        }
+    }
+    // endregion
 
     private val uid: String = firebaseAuth.uid.toString()
     private var _user: LiveData<User>? = userRepo.getUserLocal(uid)?.asLiveData()
     val user: LiveData<User>? = _user
 
     private var _imageUri: MutableLiveData<Uri?> = MutableLiveData(null)
-    val imageUri: LiveData<Uri?>
-        get() = _imageUri
     private var _childName: MutableLiveData<String?> = MutableLiveData(null)
     private var _description: MutableLiveData<String?> = MutableLiveData(null)
     val description: LiveData<String?>
@@ -116,6 +229,7 @@ class PostViewModel(
 
     fun insert() {
         savePostWork()
+        reset()
     }
 
     private fun getTimestamp(): Long {
@@ -129,9 +243,10 @@ class PostViewModel(
 @Suppress("UNCHECKED_CAST")
 class PostViewModelFactory(
     private val userRepo: UserRepository,
+    private val editImageRepository: EditImageRepository,
     private val workManager: WorkManager
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return PostViewModel(userRepo, workManager) as T
+        return PostViewModel(userRepo, editImageRepository, workManager) as T
     }
 }

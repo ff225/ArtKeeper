@@ -7,6 +7,7 @@ import com.example.artkeeper.data.datasource.PostLocalDataSource
 import com.example.artkeeper.data.datasource.PostRemoteDataSource
 import com.example.artkeeper.data.datasource.UserLocalDataSource
 import com.example.artkeeper.data.datasource.UserRemoteDataSource
+import com.example.artkeeper.data.repository.EditImageRepositoryImpl
 import com.example.artkeeper.data.repository.PostRepository
 import com.example.artkeeper.data.repository.UserRepository
 
@@ -23,6 +24,9 @@ class ArtKeeper : Application() {
             UserLocalDataSource(database.userDao()),
             UserRemoteDataSource()
         )
+    }
+    val editImageRepository: EditImageRepositoryImpl by lazy {
+        EditImageRepositoryImpl(this)
     }
     val workManager: WorkManager by lazy { WorkManager.getInstance(this) }
 }
