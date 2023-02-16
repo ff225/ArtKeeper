@@ -1,7 +1,6 @@
 package com.example.artkeeper.ui.post
 
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -19,37 +18,40 @@ import androidx.core.content.FileProvider
 import androidx.core.view.isEmpty
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.bumptech.glide.Glide
 import com.example.artkeeper.BuildConfig
 import com.example.artkeeper.R
+import com.example.artkeeper.adapter.ImageFiltersAdapter
+import com.example.artkeeper.data.ImageFilter
 import com.example.artkeeper.databinding.FragmentNewPostBinding
 import com.example.artkeeper.presentation.PostViewModel
 import com.example.artkeeper.presentation.PostViewModelFactory
 import com.example.artkeeper.utils.ArtKeeper
+import com.example.artkeeper.utils.ImageFilterListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import jp.co.cyberagent.android.gpuimage.GPUImage
 import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.io.OutputStream
-import java.util.*
 
 
-class NewPostFragment : Fragment(R.layout.fragment_new_post) {
+class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListener {
 
-    companion object {
-        const val TAG = "NewPost"
-    }
+    private val TAG = javaClass.simpleName
 
     enum class Source {
         CAMERA, GALLERY
     }
 
-    private var imageFromCamera: Uri? = null
+    private var imageFromUser: Uri? = null
+    private lateinit var gpuImage: GPUImage
+    private lateinit var originalBitmap: Bitmap
+    private val filteredBitmap = MutableLiveData<Bitmap>()
     private var _binding: FragmentNewPostBinding? = null
     private val binding
         get() = _binding!!
@@ -58,6 +60,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
     private val viewModel: PostViewModel by viewModels {
         PostViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
+            (requireActivity().application as ArtKeeper).editImageRepository,
             (requireActivity().application as ArtKeeper).workManager
         )
     }
@@ -109,22 +112,89 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             pickFromGallery.setOnClickListener { takePhoto(Source.GALLERY) }
             pickFromCamera.setOnClickListener { takePhoto(Source.CAMERA) }
             shareButton.setOnClickListener {
-                shareAction()
-                viewModel.savePostRemoteWorksInfo.observe(viewLifecycleOwner, savePost())
+                filteredBitmap.value?.let {
+                    viewModel.saveFilteredImage(it)
+                } ?: Toast.makeText(
+                    requireContext(),
+                    "È necessario inserire una foto per pubblicare",
+                    Toast.LENGTH_LONG
+                ).show()
             }
             cancelButton.setOnClickListener { cancelAction() }
 
+            imageViewPost.setOnLongClickListener {
+                imageViewPost.setImageBitmap(originalBitmap)
+                return@setOnLongClickListener false
+            }
 
-        }
+            imageViewPost.setOnClickListener {
+                imageViewPost.setImageBitmap(filteredBitmap.value)
+            }
 
-        viewModel.imageUri.observe(viewLifecycleOwner) { image ->
-            binding.imageViewPost.setImageURI(image)
-            binding.imageViewPost.visibility = if (image != null) View.VISIBLE else View.GONE
         }
 
         viewModel.description.observe(viewLifecycleOwner) { text ->
             binding.textInputDescription.setText(text)
         }
+
+        setupObservers()
+    }
+
+    private fun setupObservers() {
+        viewModel.imagePreviewUiState.observe(viewLifecycleOwner) {
+            val dataState = it ?: return@observe
+
+            dataState.bitmap?.let { bitmap ->
+                originalBitmap = bitmap
+                filteredBitmap.value = bitmap
+
+                with(originalBitmap) {
+                    gpuImage.setImage(this)
+                    viewModel.loadImageFilters(this)
+                }
+            } ?: kotlin.run {
+                dataState.error?.let { error ->
+                    Log.d(TAG, error)
+                }
+            }
+        }
+
+        viewModel.imageFiltersUiState.observe(viewLifecycleOwner) {
+            val imageFilterDataState = it ?: return@observe
+            imageFilterDataState.imageFilters?.let { imageFilters ->
+                ImageFiltersAdapter(imageFilters, this).also { adapter ->
+                    binding.filtersRecyclerView.visibility = View.VISIBLE
+                    binding.filtersRecyclerView.adapter = adapter
+                }
+            } ?: kotlin.run {
+                imageFilterDataState.error?.let { error ->
+                    Log.d(TAG, error)
+                }
+            }
+        }
+
+        filteredBitmap.observe(viewLifecycleOwner) {
+            binding.imageViewPost.visibility = View.VISIBLE
+            Glide.with(binding.imageViewPost.context)
+                .load(it)
+                .into(binding.imageViewPost)
+            //binding.imageViewPost.setImageBitmap(it)
+            binding.llPickPhoto.visibility = View.GONE
+        }
+
+        viewModel.saveFilteredImageDataState.observe(viewLifecycleOwner) {
+            val saveFilteredImageDataState = it ?: return@observe
+            saveFilteredImageDataState.uri?.let { uri ->
+                imageFromUser = uri
+                shareAction()
+            } ?: kotlin.run {
+                saveFilteredImageDataState.error?.let { error ->
+                    Log.d(TAG, error)
+                }
+            }
+        }
+
+
     }
 
     private fun savePost(): Observer<List<WorkInfo>> {
@@ -153,12 +223,11 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                 }
             } else {
                 binding.apply {
-                    progressBar.visibility = View.VISIBLE
+                    progressBarSharing.visibility = View.VISIBLE
+                    filtersRecyclerView.visibility = View.GONE
                     cancelButton.isEnabled = false
                     shareButton.isEnabled = false
                     radioGroup.isEnabled = false
-                    pickFromCamera.isEnabled = false
-                    pickFromGallery.isEnabled = false
                     textInputDescription.isEnabled = false
                 }
                 (activity as? AppCompatActivity)?.supportActionBar?.setDisplayHomeAsUpEnabled(
@@ -178,21 +247,33 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
                 Log.d("$TAG, PhotoPicker", "Selected URI: $uri")
-                viewModel.setImageUri(saveImageToInternalStorage(uri))
+                //viewModel.setImageUri(saveImageToInternalStorage(uri))
+                //binding.imageViewPost.visibility = View.VISIBLE
+                //binding.imageViewPost.setImageURI(uri)
+                gpuImage = GPUImage(requireContext())
+                //imageFromUser = uri
+
+                viewModel.prepareImagePreview(uri)
+                //viewModel.setImageUri(uri)
             } else {
                 Log.d("$TAG, PhotoPicker", "No media selected")
             }
         }
 
-
     private val getPhotoFromCamera =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { isSuccess ->
             if (isSuccess) {
-                imageFromCamera.let {
+                imageFromUser.let {
+                    //binding.imageViewPost.visibility = View.VISIBLE
+                    //binding.imageViewPost.setImageURI(it!!)
+                    gpuImage = GPUImage(requireContext())
                     Log.d(TAG, it?.path.toString())
-                    viewModel.setImageUri(saveImageToInternalStorage(it!!))
+                    viewModel.prepareImagePreview(it!!)
+                    //viewModel.setImageUri(saveImageToInternalStorage(it!!))
+
                 }
-            }
+            } else
+                imageFromUser = null
 
         }
 
@@ -206,7 +287,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
                 Log.d(TAG, "Pick photo from camera")
                 lifecycleScope.launchWhenStarted {
                     getTmpFileUri().let { uri ->
-                        imageFromCamera = uri
+                        imageFromUser = uri
                         getPhotoFromCamera.launch(uri)
                     }
 
@@ -254,30 +335,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
 
     }
 
-    private fun fromUriToBitmap(uri: Uri) =
-        ImageDecoder.decodeBitmap(
-            ImageDecoder.createSource(
-                requireContext().contentResolver,
-                uri
-            )
-        )
-
-    private fun saveImageToInternalStorage(imagePath: Uri): Uri {
-
-        val file = File(requireContext().filesDir, "${UUID.randomUUID()}.jpg")
-        val bitmap = fromUriToBitmap(imagePath)
-        Log.d(TAG, file.path)
-        try {
-            val stream: OutputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
-            stream.flush()
-            stream.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        return Uri.parse(file.absolutePath)
-    }
-
     private fun shareAction() {
 
         Log.d(TAG, "condivido il post...")
@@ -289,19 +346,22 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post) {
             TAG,
             (binding.radioGroup.checkedRadioButtonId).toString()
         )
+
         viewModel.apply {
+            setImageUri(imageFromUser!!)
             setDescription(binding.textInputDescription.text.toString().trim())
             setChildName(binding.radioGroup.findViewById<RadioButton>(binding.radioGroup.checkedRadioButtonId)?.text as String?)
-            if (checkPost()) {
-                insert()
+            insert()
+            savePostRemoteWorksInfo.observe(viewLifecycleOwner, savePost())
+        }
+    }
 
-            } else
-                Toast.makeText(
-                    requireContext(),
-                    "È necessario inserire una foto per pubblicare",
-                    Toast.LENGTH_LONG
-                ).show()
-
+    override fun onFilterSelected(imageFilter: ImageFilter) {
+        with(imageFilter) {
+            with(gpuImage) {
+                setFilter(filter)
+                filteredBitmap.value = bitmapWithFilterApplied
+            }
         }
     }
 
