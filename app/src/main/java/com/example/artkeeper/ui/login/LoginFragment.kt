@@ -51,9 +51,7 @@ class LoginFragment : Fragment() {
         if (FirebaseAuth.getInstance().currentUser != null)
             findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToProfileFragment())
         else
-            activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
-
-
+            requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = true
     }
 
     override fun onCreateView(
@@ -126,7 +124,10 @@ class LoginFragment : Fragment() {
                         TAG, "in userIsRegistered, ${result.data}"
                     )
                     val serviceIntent =
-                        Intent(requireActivity(), NotificationFollowingRequest::class.java)
+                        Intent(
+                            requireActivity().applicationContext,
+                            NotificationFollowingRequest::class.java
+                        )
                     requireActivity().startService(serviceIntent)
                     binding.progressBarLogin.visibility = View.GONE
                     findNavController().navigate(LoginFragmentDirections.actionLoginFragmentToMainFragment())
@@ -142,7 +143,7 @@ class LoginFragment : Fragment() {
     }
 
 
-    private fun onClickListener(){
+    private fun onClickListener() {
         binding.loginButton.setOnClickListener {
             createSignInIntent()
         }

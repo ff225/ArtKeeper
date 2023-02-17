@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isGone
 import androidx.fragment.app.Fragment
@@ -43,13 +42,15 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val serviceIntent = Intent(requireActivity(), NotificationFollowingRequest::class.java)
+        Log.d(TAG, requireActivity().applicationContext.toString())
+        val serviceIntent =
+            Intent(requireActivity().applicationContext, NotificationFollowingRequest::class.java)
         if (firebaseAuth.currentUser == null) {
             requireActivity().stopService(serviceIntent)
             findNavController().navigate(MainFragmentDirections.actionMoveToLogin())
         }
 
-        activity?.findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = false
+        requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)!!.isGone = false
         _binding = FragmentMainBinding.inflate(inflater, container, false)
 
         return binding.root

@@ -13,49 +13,51 @@ import com.example.artkeeper.R
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 
 class NotificationFollowingRequest : Service() {
-
-    private var value: String? = null
+    private lateinit var pendingReqQuery: DatabaseReference
 
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val pendingReqQuery =
+
+        pendingReqQuery =
             Constants.databaseRef.getReference("users").child(Constants.firebaseAuth.uid!!)
                 .child("pendingRequestFrom")
+        pendingReqQuery.addChildEventListener(listener)
 
-        pendingReqQuery.addChildEventListener(object : ChildEventListener {
+        return START_NOT_STICKY
+    }
 
-            override fun onChildAdded(dataSnapshot: DataSnapshot, prevChildKey: String?) {
-                Log.d("ServiceNotification", "onChildAdded")
-                sendNotification(applicationContext, "Hai ricevuto una richiesta di amicizia")
-            }
+    private val listener = object : ChildEventListener {
 
-            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("ServiceNotification", "onChildChanged")
-            }
+        override fun onChildAdded(dataSnapshot: DataSnapshot, prevChildKey: String?) {
+            Log.d("ServiceNotification", "onChildAdded")
+            sendNotification(applicationContext, "Hai ricevuto una richiesta di amicizia")
+        }
 
-            override fun onChildRemoved(snapshot: DataSnapshot) {
-                Log.d("ServiceNotification", "onChildRemoved")
-            }
+        override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+            Log.d("ServiceNotification", "onChildChanged")
+        }
 
-            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                Log.d("ServiceNotification", "onChildMoved")
-            }
+        override fun onChildRemoved(snapshot: DataSnapshot) {
+            Log.d("ServiceNotification", "onChildRemoved")
+        }
 
-            override fun onCancelled(error: DatabaseError) {
-                Log.d("ServiceNotificationa", "onCancelled")
-            }
-        })
-        
-        return START_STICKY
+        override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+            Log.d("ServiceNotification", "onChildMoved")
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Log.d("ServiceNotificationa", "onCancelled")
+        }
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        pendingReqQuery.removeEventListener(listener)
         stopSelf()
     }
 
