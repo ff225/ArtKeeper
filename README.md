@@ -1,21 +1,48 @@
 # ArtKeeper
 
-Progetto programmazione mobile
+### Descrizione
+
+ArtKeeper è un'applicazione creata appositamente per aiutare i genitori a conservare i disegni dei
+propri figli.
+
+Per utilizzare ArtKeeper, è necessario effettuare la registrazione all'interno dell'applicazione.  
+Gli utenti possono scegliere di registrarsi utilizzando un account Google o Facebook, rendendo il
+processo di registrazione rapido e semplice.  
+La registrazione consente ad ArtKeeper di offrire una maggiore sicurezza e privacy degli utenti.
+
+Questa app offre la possibilità di caricare i disegni dei propri figli scattando una foto
+direttamente dall'app o selezionandola dalla galleria del proprio dispositivo.  
+ArtKeeper offre anche la possibilità di applicare dei filtri alle immagini dei disegni, per
+personalizzare e migliorare l'aspetto delle opere d'arte.  
+L'applicazione offre la possibilità di annotare ogni disegno con informazioni importanti come la
+data in cui è stato realizzato, il nome del bambino e una breve descrizione.  
+Una volta caricati, i disegni sono conservati nel proprio profilo.
+
+ArtKeeper offre anche la possibilità di condividere i disegni con amici e parenti attraverso le più
+popolari applicazioni di messaggistica.  
+In questo modo, i nonni, gli zii e gli amici della famiglia potranno godere delle opere dei bambini,
+anche se vivono lontano.
+
+In aggiunta alle funzionalità descritte in precedenza, ArtKeeper offre anche la possibilità di
+seguire altri utenti. Questo significa che gli utenti possono connettersi con amici, parenti o altri
+utenti dell'applicazione che desiderano seguire e vedere i loro disegni.
+
+Una volta che un utente segue un altro utente, gli verrà mostrato il loro profilo utente e tutti i
+disegni che hanno condiviso. Questo è un modo per scoprire nuovi disegni e artisti, condividere
+ispirazioni e connettersi con altri genitori.
+
+Grazie ad ArtKeeper, i genitori potranno conservare per sempre i disegni dei propri figli senza il
+rischio di perderli o danneggiarli.
 
 ### Caratteristiche
 
-- **Autenticazione con Firebase**: l'utente può registrarsi utilizzando le credenziali di
-  Facebook/Google;
-- **Aggiungere i figli all'app**: l'utente può aggiungere uno o più figli al profilo. È necessario
-  solo il nome;
-- **Upload dei disegni**: l'utente può di scattare una foto/scegliere dalla galleria il disegno che
-  vuole postare;
-    - Ogni post contiene la foto, una descrizione (opzionale) e il nome del figlio (opzionale).
-- **Photo feed**: l'utente può visualizzare in ordine cronologico inverso i disegni che ha
-  caricato; <br> Ogni post è composto dalla data di pubblicazione, e opzionalmente, una descrizione
-  e il nome del figlio;
-- **Condivisione del post**: l'utente può condividere il post su piattaforme di
-  messaggistica (whatsapp, telegram, signal...);
-- **Cercare e seguire amici**: l'utente può cercare e seguire le persone
-  iscritte all'app utilizzando il nickname. La richiesta di amicizia comporta l'invio di una
-  notifica.
+ArtKeeper è un'applicazione sviluppata utilizzando il linguaggio di programmazione **Kotlin**.
+
+Inoltre, ArtKeeper utilizza la libreria **Room**, un framework di persistenza dei dati fornito da
+Android. Room semplifica la gestione dei dati dell'applicazione, consentendo di creare un database
+locale per archiviare le informazioni di base dell'utente e i disegni dei bambini.
+
+ArtKeeper utilizza anche **Firebase**, una piattaforma di sviluppo mobile e web di Google che fornisce
+un'ampia gamma di strumenti per lo sviluppo di app. Firebase è utilizzato per la gestione del login
+e memorizzare i post in cloud.
+

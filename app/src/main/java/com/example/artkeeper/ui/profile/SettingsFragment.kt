@@ -97,7 +97,7 @@ class SettingsFragment : Fragment() {
                 if (text.isEmpty()) {
                     Toast.makeText(
                         requireContext(),
-                        "Devi inserire un nome valido...",
+                        getString(R.string.invalid_name),
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
@@ -109,17 +109,17 @@ class SettingsFragment : Fragment() {
 
     private fun showDialogRemoveChild(childName: Array<String>?) {
 
-        Log.d("SettingsFragment", childName?.size.toString())
+        Log.d(TAG, childName?.size.toString())
         var select: String? = null
         var index = -1
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Chi vuoi cancellare?")
+            .setTitle(getString(R.string.qn_rmv_son))
             .setSingleChoiceItems(childName, index) { _, which ->
                 index = which
                 select = childName?.get(which).toString()
             }
             .setPositiveButton(R.string.confirm) { _, _ ->
-                Toast.makeText(requireContext(), "Selected $select", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Rimosso $select", Toast.LENGTH_LONG).show()
                 viewModel.removeChild(index)
             }
             .setNegativeButton(R.string.delete) { dialog, _ ->
@@ -131,7 +131,7 @@ class SettingsFragment : Fragment() {
 
     private fun showDeleteAccount() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Sicuro di voler procedere?")
+            .setTitle(getString(R.string.qn_delete_account))
             .setPositiveButton(R.string.confirm) { _, _ ->
                 viewModel.deleteUserRemoteWork()
                 viewModel.deleteRemoteUserWorksInfo.observe(viewLifecycleOwner, deleteAccount())
@@ -170,7 +170,7 @@ class SettingsFragment : Fragment() {
                 if (WorkInfo.State.FAILED == workInfo.state)
                     Toast.makeText(
                         requireContext(),
-                        "Operazione sensibile. Effettua il login",
+                        getString(R.string.retry_to_delete),
                         Toast.LENGTH_LONG
                     ).show()
                 AuthUI.getInstance().signOut(requireContext()).addOnCompleteListener {

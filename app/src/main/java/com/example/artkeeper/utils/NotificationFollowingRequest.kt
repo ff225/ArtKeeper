@@ -65,8 +65,8 @@ class NotificationFollowingRequest : Service() {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notificationId = System.currentTimeMillis().toInt()
-        val channelId = "ArtKeeper"
-        val channelName = "Richieste di amicizia"
+        val channelId = getString(R.string.channel_id)
+        val channelName = getString(R.string.channel_name)
         val importance = NotificationManager.IMPORTANCE_HIGH
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

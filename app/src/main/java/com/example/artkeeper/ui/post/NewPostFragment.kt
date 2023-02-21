@@ -28,7 +28,7 @@ import com.bumptech.glide.Glide
 import com.example.artkeeper.BuildConfig
 import com.example.artkeeper.R
 import com.example.artkeeper.adapter.ImageFiltersAdapter
-import com.example.artkeeper.data.ImageFilter
+import com.example.artkeeper.data.model.ImageFilter
 import com.example.artkeeper.databinding.FragmentNewPostBinding
 import com.example.artkeeper.presentation.PostViewModel
 import com.example.artkeeper.presentation.PostViewModelFactory
@@ -179,7 +179,6 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
             Glide.with(binding.imageViewPost.context)
                 .load(it)
                 .into(binding.imageViewPost)
-            //binding.imageViewPost.setImageBitmap(it)
             binding.llPickPhoto.visibility = View.GONE
         }
 
@@ -249,11 +248,11 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
     private val getPhotoFromPhotoPicker =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
-                Log.d("$TAG, PhotoPicker", "Selected URI: $uri")
+                Log.d(TAG, "in PhotoPicker selected URI: $uri")
                 gpuImage = GPUImage(requireContext())
                 viewModel.prepareImagePreview(uri)
             } else {
-                Log.d("$TAG, PhotoPicker", "No media selected")
+                Log.d(TAG, "in PhotoPicker no media selected")
             }
         }
 
@@ -306,7 +305,7 @@ class NewPostFragment : Fragment(R.layout.fragment_new_post), ImageFilterListene
     private fun cancelAction() {
 
         if (viewModel.checkPost())
-            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.cancel)
+            MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.cancel_post)
                 .setNegativeButton(R.string.no) { dialog, _ ->
                     dialog.cancel()
                 }

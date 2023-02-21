@@ -15,6 +15,7 @@
     <string name="change_img_profile">Cambia immagine del profilo</string>
     <string name="add_son">Aggiungi figlio</string>
     <string name="logout">Logout</string>
+    <string name="empty_field">Il campo è vuoto</string>
     <string name="sketched_by">Disegnato da: %s</string>
     <string name="description">Descrizione</string>
     <string name="pick_from_gallery">Galleria</string>
@@ -25,7 +26,7 @@
     <string name="success_sharing">Condivisione del post riusciuta</string>
     <string name="delete">Annulla</string>
     <string name="share">Pubblica</string>
-    <string name="cancel">Cancellare il post?</string>
+    <string name="cancel_post">Cancellare il post?</string>
     <string name="yes">Si</string>
     <string name="no">No</string>
     <string name="folder_image">"ArtKeeperImages"</string>
@@ -46,4 +47,12 @@
     <string name="stop_following">Smetti di seguire</string>
     <string name="follow">Segui</string>
     <string name="title_pending_request_Fragment">Richieste di amicizia</string>
+    <string name="invalid_last_name">Cognome non valido</string>
+    <string name="invalid_name">Nome non valido</string>
+    <string name="qn_rmv_son">Seleziona il figlio da rimuovere</string>
+    <string name="qn_delete_account">Sicuro di voler procedere?</string>
+    <string name="retry_to_delete">Operazione sensibile. Effettua il login</string>
+    <string name="channel_name">Richieste di amicizia</string>
+    <string name="channel_id">ArtKeeper</string>
+    <string name="share_post">Condividi il post</string>
 </resources>

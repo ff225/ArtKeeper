@@ -2,7 +2,7 @@ package com.example.artkeeper.data.repository
 
 import android.graphics.Bitmap
 import android.net.Uri
-import com.example.artkeeper.data.ImageFilter
+import com.example.artkeeper.data.model.ImageFilter
 
 interface EditImageRepository {
 

@@ -10,12 +10,14 @@ import kotlinx.coroutines.withContext
 
 
 class PendingRequestViewModel(private val userRepository: UserRepository) : ViewModel() {
+    private val TAG = javaClass.simpleName
+
     private val _pendingReqList = MutableLiveData<List<Nickname>>()
     val pendingReqList: LiveData<List<Nickname>>
         get() = _pendingReqList
 
     fun observePendingReq(pendingReqList: List<String>) {
-        Log.d(javaClass.simpleName, pendingReqList.toString())
+        Log.d(TAG, pendingReqList.toString())
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 userRepository.getAllNicknamePendingReq(pendingReqList).collect {

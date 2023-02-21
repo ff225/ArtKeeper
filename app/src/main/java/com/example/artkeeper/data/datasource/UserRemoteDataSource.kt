@@ -140,7 +140,7 @@ class UserRemoteDataSource(private val dispatcher: CoroutineDispatcher = Dispatc
                             nickNameList.add(
                                 Nickname(nickname.key!!, nickname.value.toString())
                             )
-                            Log.d("UserRemoteDataSource", nickname.toString())
+                            Log.d(TAG, nickname.toString())
                         }
 
                     }

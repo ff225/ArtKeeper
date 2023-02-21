@@ -7,7 +7,7 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.util.Log
-import com.example.artkeeper.data.ImageFilter
+import com.example.artkeeper.data.model.ImageFilter
 import jp.co.cyberagent.android.gpuimage.GPUImage
 import jp.co.cyberagent.android.gpuimage.filter.*
 import java.io.File
@@ -16,6 +16,7 @@ import java.io.InputStream
 import java.util.*
 
 class EditImageRepositoryImpl(private val ctx: Context) : EditImageRepository {
+    private val TAG = javaClass.simpleName
 
     override suspend fun getImageFilters(image: Bitmap): List<ImageFilter> {
         val gpuImage = GPUImage(ctx).apply {
@@ -97,7 +98,7 @@ class EditImageRepositoryImpl(private val ctx: Context) : EditImageRepository {
     override suspend fun prepareImagePreview(imageUri: Uri): Bitmap? {
         getInputStreamFromUri(imageUri)?.let {
             val exif = ExifInterface(it)
-            Log.d("EditImageRepo", exif.getAttribute(ExifInterface.TAG_ORIENTATION).toString())
+            Log.d(TAG, exif.getAttribute(ExifInterface.TAG_ORIENTATION).toString())
             getInputStreamFromUri(imageUri)?.let { inputstream ->
                 val bitmap = BitmapFactory.decodeStream(inputstream)
                 val orientation = exif.getAttributeInt(

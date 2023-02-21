@@ -9,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.navGraphViewModels
 import com.example.artkeeper.R
@@ -68,7 +67,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
             textInputNickname.onFocusChangeListener =
                 View.OnFocusChangeListener { _, hasFocus ->
                     if (hasFocus)
-                        binding.textInputNickname.hint = "Eventuali spazi bianchi verranno rimossi"
+                        binding.textInputNickname.hint = getString(R.string.hint_textview_nickname)
                     else
                         binding.textInputNickname.hint = ""
                 }
@@ -85,7 +84,7 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         if (!checkUserInfo()) {
             createUser()
             viewModel.updateUserInfo(name, lastName, nickName, prevNickname)
-                .observe(viewLifecycleOwner, { result ->
+                .observe(viewLifecycleOwner) { result ->
                     when (result) {
                         is Resource.Loading -> Log.d(TAG, "caricamento...")
                         is Resource.Success -> {
@@ -95,14 +94,14 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
                             binding.textInputNickname.error = result.exception.message.toString()
                         }
                     }
-                })
+                }
         }
     }
 
     private fun createUser() {
 
-        name = binding.textInputName.text.toString().trim().filterNot { it.isWhitespace() }
-        lastName = binding.textInputLastname.text.toString().trim().filterNot { it.isWhitespace() }
+        name = binding.textInputName.text.toString().trim()
+        lastName = binding.textInputLastname.text.toString().trim()
         nickName = binding.textInputNickname.text.toString().lowercase().trim()
             .filterNot { it.isWhitespace() }
     }
@@ -114,24 +113,25 @@ class UpdateInfoFragment : Fragment(R.layout.fragment_registration) {
         val networkInfo = connMgr.activeNetworkInfo
         if (networkInfo?.isConnected == null) {
             hasError = true
-            Toast.makeText(requireContext(), "Connessione assente.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.no_connection), Toast.LENGTH_SHORT)
+                .show()
         }
         if (binding.textInputName.text.toString().trim()
-                .isEmpty() || !(binding.textInputName.text.toString()
+                .isEmpty() || !(binding.textInputName.text.toString().trim()
                 .matches(regex))
         ) {
-            binding.textInputName.error = "Nome non valido"
+            binding.textInputName.error = getString(R.string.invalid_name)
             hasError = true
         }
         if (binding.textInputLastname.text.toString().trim()
-                .isEmpty() || !(binding.textInputLastname.text.toString()
+                .isEmpty() || !(binding.textInputLastname.text.toString().trim()
                 .matches(regex))
         ) {
-            binding.textInputLastname.error = "Cognome non valido"
+            binding.textInputLastname.error = getString(R.string.invalid_last_name)
             hasError = true
         }
         if (binding.textInputNickname.text.toString().trim().isEmpty()) {
-            binding.textInputNickname.error = "Il campo è vuoto"
+            binding.textInputNickname.error = getString(R.string.empty_field)
             hasError = true
         }
         return hasError

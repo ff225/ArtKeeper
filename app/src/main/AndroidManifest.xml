@@ -25,12 +25,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- <activity android:name=".LoginActivity" /> -->
-        <!--
- FileProvider è una sottoclasee di ContentProvider che rende semplice e sicura la
-        condivisione dei file associati ad un app creando un 'content://Uri per un file invece di
-        file://Uri.
-        -->
+        </activity>
+        
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.file_provider"

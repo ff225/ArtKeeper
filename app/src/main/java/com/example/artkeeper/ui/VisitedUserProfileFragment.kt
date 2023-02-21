@@ -49,7 +49,7 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        Log.d("VisitedUserProfileFragment", arguments?.getString("uidRequest").toString())
+        Log.d(TAG, arguments?.getString("uidRequest").toString())
 
         binding.apply {
             buttonFollower.visibility = View.GONE
@@ -140,7 +140,7 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
                                 .load(userOnline.photoUser!!.toUri())
                                 .format(DecodeFormat.PREFER_RGB_565)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .error(R.drawable.ic_baseline_settings_24)
+                                .error(R.drawable.ic_round_cloud_off_24)
                                 .into(imageProfile)
 
                             if (userOnline.uid.equals(Constants.firebaseAuth.uid)) {
@@ -168,8 +168,10 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
     private fun isPendingRequestTo() {
         viewModel.pendingRequestTo.observe(viewLifecycleOwner) { listRequest ->
             Log.d(
-                "$TAG, pendingRequestTo",
-                listRequest.contains(arguments?.getString("uidRequest")).toString()
+                TAG,
+                "in pendingRequestTo ${
+                    listRequest.contains(arguments?.getString("uidRequest"))
+                }"
             )
             if (listRequest.contains(arguments?.getString("uidRequest")))
                 binding.apply {
@@ -187,8 +189,10 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
     private fun isPendingRequestFrom() {
         viewModel.pendingRequestFrom.observe(viewLifecycleOwner) { listRequest ->
             Log.d(
-                "$TAG, pendingRequestFrom",
-                listRequest.contains(arguments?.getString("uidRequest")).toString()
+                TAG,
+                "in pendingRequestFrom ${
+                    listRequest.contains(arguments?.getString("uidRequest"))
+                }"
             )
             if (listRequest.contains(arguments?.getString("uidRequest")))
                 binding.apply {
@@ -223,8 +227,10 @@ class VisitedUserProfileFragment : Fragment(R.layout.fragment_profile) {
     private fun seeVisitedPost(adapter: PostAdapter) {
         viewModel.followers.observe(viewLifecycleOwner) { followers ->
             Log.d(
-                "$TAG, seeVisitedPost",
-                followers.contains(arguments?.getString("uidRequest")).toString()
+                TAG,
+                "in seeVisitedPost ${
+                    followers.contains(arguments?.getString("uidRequest"))
+                }"
             )
             if (followers.contains(arguments?.getString("uidRequest"))) {
                 binding.apply {

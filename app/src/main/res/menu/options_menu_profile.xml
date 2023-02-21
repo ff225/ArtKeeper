@@ -3,9 +3,9 @@
     <item
         android:id="@+id/cancel_button"
         android:enabled="true"
-        android:title="@string/cancel" />
+        android:title="@string/cancel_post" />
     <item
         android:id="@+id/share_post"
         android:enabled="true"
-        android:title="Condividi il post" />
+        android:title="@string/share_post" />
 </menu>

@@ -29,7 +29,7 @@ class PostRemoteDataSource {
             it[it.lastIndex]
         }
         val imageRef = "images/$uid/$imageName"
-        Log.d("$TAG, saveImageRemote", imageRef)
+        Log.d(TAG, "in saveImageRemote, $imageRef")
         return try {
             storageRef.child(imageRef).putFile(Uri.fromFile(File(imagePath)))
                 .await()

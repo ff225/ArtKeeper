@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.artkeeper.data.ImageFilter
+import com.example.artkeeper.data.model.ImageFilter
 import com.example.artkeeper.databinding.ItemContainerFilterBinding
 import com.example.artkeeper.utils.ImageFilterListener
 
@@ -31,8 +31,7 @@ class ImageFiltersAdapter(
                 Glide.with(binding.imageFilterPreview)
                     .load(filterPreview)
                     .into(binding.imageFilterPreview)
-
-
+                
                 binding.textFilterName.text = name
                 binding.root.setOnClickListener {
                     imageFilterListener.onFilterSelected(this)

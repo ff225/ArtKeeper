@@ -57,7 +57,6 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             postRepo.getAllPostUserRemote(firebaseAuth.uid.toString())
-
         }
     }
 

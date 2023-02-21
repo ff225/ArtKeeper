@@ -84,11 +84,12 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun observer(adapter:PostAdapter) {
+    private fun observer(adapter: PostAdapter) {
         viewModel.user.observe(viewLifecycleOwner) { user ->
             val imageUri: Uri = user.photo.toUri()
             Glide.with(binding.imageProfile.context)
                 .load(imageUri)
+                .error(R.drawable.ic_round_cloud_off_24)
                 .into(binding.imageProfile)
             binding.apply {
                 tvName.text = user.firstName

@@ -70,11 +70,8 @@ class MainActivity : AppCompatActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        if (isGranted) {
+        if (!isGranted)
             askNotificationPermission()
-        } else {
-            askNotificationPermission()
-        }
     }
 
     private fun askNotificationPermission() {

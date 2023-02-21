@@ -27,7 +27,8 @@ import com.google.firebase.auth.FirebaseAuth
 
 
 class RegistrationFragment : Fragment() {
-    private val TAG: String = javaClass.simpleName
+    private val TAG = javaClass.simpleName
+
     private var _binding: FragmentRegistrationBinding? = null
     private val binding: FragmentRegistrationBinding
         get() = _binding!!
@@ -141,8 +142,9 @@ class RegistrationFragment : Fragment() {
 
     private fun createUser() {
 
-        name = binding.textInputName.text.toString().trim().filterNot { it.isWhitespace() }
-        lastName = binding.textInputLastname.text.toString().trim().filterNot { it.isWhitespace() }
+        name = binding.textInputName.text.toString().trim()
+        lastName =
+            binding.textInputLastname.text.toString().trim()
         nickName = binding.textInputNickname.text.toString().lowercase().trim()
             .filterNot { it.isWhitespace() }
     }

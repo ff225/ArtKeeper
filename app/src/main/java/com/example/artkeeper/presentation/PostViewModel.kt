@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.lifecycle.*
 import androidx.work.*
-import com.example.artkeeper.data.ImageFilter
+import com.example.artkeeper.data.model.ImageFilter
 import com.example.artkeeper.data.model.PostToRemote
 import com.example.artkeeper.data.model.User
 import com.example.artkeeper.data.repository.EditImageRepository

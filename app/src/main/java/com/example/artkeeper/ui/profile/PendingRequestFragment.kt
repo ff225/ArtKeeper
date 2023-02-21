@@ -19,6 +19,8 @@ import com.example.artkeeper.utils.ArtKeeper
 
 class PendingRequestFragment : Fragment(R.layout.fragment_main) {
 
+    private val TAG = javaClass.simpleName
+
     private val viewModel: PendingRequestViewModel by viewModels {
         PendingRequestViewModelFactory(
             (requireActivity().application as ArtKeeper).userRepository,
@@ -57,7 +59,7 @@ class PendingRequestFragment : Fragment(R.layout.fragment_main) {
         binding.apply {
             searchTextView.visibility = View.GONE
             viewModel.pendingReqList.observe(viewLifecycleOwner) {
-                Log.d("PendingRequestFragment", it.toString())
+                Log.d(TAG, it.toString())
                 adapter.submitList(it)
             }
         }

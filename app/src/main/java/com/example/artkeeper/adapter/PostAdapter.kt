@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.artkeeper.R
 import com.example.artkeeper.data.model.Post
@@ -23,6 +22,8 @@ class PostAdapter(
     private val clickListener: PostListener
 ) :
     ListAdapter<Post, PostAdapter.PostItemViewHolder>(PostRemoteDiffCallback()) {
+
+    private val TAG = javaClass.simpleName
 
     var nickName: String = ""
     var menu: Int = 0
@@ -55,9 +56,8 @@ class PostAdapter(
 
                 Glide.with(photoItem.context)
                     .load(post.imagePath.toUri())
-                    .format(DecodeFormat.PREFER_RGB_565)
                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                    .error(R.drawable.ic_baseline_settings_24)
+                    .error(R.drawable.ic_round_cloud_off_24)
                     .into(photoItem)
 
 
@@ -121,7 +121,6 @@ class PostAdapter(
             oldItem: Post,
             newItem: Post
         ): Boolean {
-            //return oldItem.id == newItem.id
             return oldItem.idPost == newItem.idPost
         }
 
