@@ -1,11 +1,10 @@
 # ArtKeeper
 
-### Descrizione
 
 ArtKeeper è un'applicazione creata appositamente per aiutare i genitori a conservare i disegni dei
 propri figli.
 
-Per utilizzare ArtKeeper, è necessario effettuare la registrazione all'interno dell'applicazione.  
+Per utilizzare ArtKeeper è necessario effettuare la registrazione all'interno dell'applicazione.  
 Gli utenti possono scegliere di registrarsi utilizzando un account Google o Facebook, rendendo il
 processo di registrazione rapido e semplice.  
 La registrazione consente ad ArtKeeper di offrire una maggiore sicurezza e privacy degli utenti.
@@ -33,16 +32,4 @@ ispirazioni e connettersi con altri genitori.
 
 Grazie ad ArtKeeper, i genitori potranno conservare per sempre i disegni dei propri figli senza il
 rischio di perderli o danneggiarli.
-
-### Caratteristiche
-
-ArtKeeper è un'applicazione sviluppata utilizzando il linguaggio di programmazione **Kotlin**.
-
-Inoltre, ArtKeeper utilizza la libreria **Room**, un framework di persistenza dei dati fornito da
-Android. Room semplifica la gestione dei dati dell'applicazione, consentendo di creare un database
-locale per archiviare le informazioni di base dell'utente e i disegni dei bambini.
-
-ArtKeeper utilizza anche **Firebase**, una piattaforma di sviluppo mobile e web di Google che fornisce
-un'ampia gamma di strumenti per lo sviluppo di app. Firebase è utilizzato per la gestione del login
-e memorizzare i post in cloud.
 
