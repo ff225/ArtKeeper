@@ -1,7 +1,7 @@
 # ArtKeeper
 
 
-ArtKeeper è un'applicazione creata appositamente per aiutare i genitori a conservare i disegni dei
+ArtKeeper è un'applicazione Android creata appositamente per aiutare i genitori a conservare i disegni dei
 propri figli.
 
 Per utilizzare ArtKeeper è necessario effettuare la registrazione all'interno dell'applicazione.  
